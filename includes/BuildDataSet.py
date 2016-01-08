@@ -9,16 +9,20 @@ import os
 import numpy as np
 import re
 from matplotlib import pyplot as plt
+import random
 
-Basefile = 'data/TrainTest/'
+Basefile = '/Users/adityanagarajan/Summer_2015/ConvectiveInitiation/data/TrainTest/'
 
 class dataset(object):
     """This class builds the data set given the pixel points
     """
-    def __init__(self,Thrashold = 24.0):
+    def __init__(self,Threshold = 24.0,num_points = 1500):
         self.TrainTestdir = '/Users/adityanagarajan/Summer_2015/ConvectiveInitiation/data/TrainTest/'
         self.IPWfiles, self.Radarfiles = self._sort_IPW_refl_files()
-        self.Thrashold = Thrashold
+        self.Threshold = Threshold
+        self.num_points = num_points 
+        self.sorted_days = self.club_days()
+        self.days_in_sorted = self.sorted_days.keys()
         
     def _sort_IPW_refl_files(self):
         
@@ -79,10 +83,10 @@ class dataset(object):
         reflectivity_array -> shape = n_examples x (6 x 1089)
         
         '''
-        Thrashold = self.Thrashold
+        Threshold = self.Threshold
         # Initialize array (4536 for 4 time steps of IPW fields, and one for ground truth)
-        out_matrixIPW = np.zeros((len(temp_ipw_file_list),1089*6 + 1))
-        out_matrixRadar = np.zeros((len(temp_ipw_file_list),1089*6))
+        out_matrixIPW = np.zeros((len(temp_ipw_file_list),1089*6 + 1),dtype='float32')
+        out_matrixRadar = np.zeros((len(temp_ipw_file_list),1089*6),dtype='float32')
         i_start = x_ -16
         i_end = x_ + 17
         j_start = y_ -16
@@ -92,19 +96,22 @@ class dataset(object):
         matrix_ctr = 0
     
         for i_file,r_file in zip(temp_ipw_file_list,temp_radar_file_list):
-            RadarMatrix = np.load(Basefile + r_file)
+            RadarMatrix = np.load(Basefile + r_file).astype('float32')
     
             RadarMatrix[np.isnan(RadarMatrix)] = 0.0
             RadarMatrixFeature = RadarMatrix.copy()
+            
+            if Threshold:
+                
+                RadarMatrix[RadarMatrix < Threshold] = 0.0
     
-            RadarMatrix[RadarMatrix < Thrashold] = 0.0
-    
-            RadarMatrix[RadarMatrix >= Thrashold] = 1.0
+                RadarMatrix[RadarMatrix >= Threshold] = 1.0
         
             pointXY = RadarMatrix[y_,x_]
             out_matrixIPW[matrix_ctr,-1] = pointXY
             # Current field time stem in is the first 1089 features
-            IPWMatrix = np.load(Basefile + i_file)
+            IPWMatrix = np.load(Basefile + i_file).astype('float32')
+            
             out_matrixIPW[matrix_ctr,:1089] = IPWMatrix[j_start:j_end,i_start:i_end].reshape(-1,)
             out_matrixRadar[matrix_ctr,:1089] = RadarMatrixFeature[j_start:j_end,i_start:i_end].reshape(-1,)
             # Start with the first point 
@@ -170,11 +177,105 @@ class dataset(object):
         plt.xlabel('Easting')
     
         plt.ylabel('Northing')
-        plt.grid()
 
         plt.xlim((-150.0,150.0))
 
         plt.ylim((-150.0,150.0))
+        plt.grid()
+    
+    def sample_random_pixels(self):
+        
+        # We are going to choose a sub domain in our total 300x300 domain in DFW
+        fill_domain = (range(17,83),range(17,83))
+
+        PixelX = fill_domain[0]
+        PixelY = fill_domain[1]
+
+        # Pull the central chunk of points out
+        central_chunk = (range(46,54),range(46,54))
+
+        central_chunk_points = [(x_,y_) for x_ in central_chunk[0] for y_ in central_chunk[1]]
+
+        # Pair up the pixel points
+        PixelPoints = [(x,y) for x in PixelX for y in PixelY]
+
+        # Remove all central points from the pair
+        PixelPoints = [pairs for pairs in PixelPoints if pairs not in central_chunk_points]
+
+        # Randomely sample 1500 pairs of points
+        random.seed(12345)
+        
+        PixelPoints = [PixelPoints[x] for x in random.sample(range(4292),self.num_points)]
+
+        PixelPoints = np.array(PixelPoints)
+        
+        return PixelPoints
+    
+    def make_points_frames(self,PixelPoints):
+        self.days_in_sorted.sort()
+        IPW_Refl_points = []
+        for x_,y_ in zip(PixelPoints[:,0],PixelPoints[:,1]):
+            print 'Building data set for point: (%d,%d)'%(x_,y_)
+            for set_ in self.days_in_sorted:
+                temp_ipw_file_list = filter(lambda x: x[7:10] in self.sorted_days[set_],self.IPWfiles)
+                temp_radar_file_list = filter(lambda x: x[9:12] in self.sorted_days[set_],self.Radarfiles)
+                tmp_array = self.build_features_and_truth(temp_ipw_file_list,temp_radar_file_list,x_,y_)
+                IPW_Refl_points.append(tmp_array)
+
+        return IPW_Refl_points
+    
+    def arrange_frames(self,IPW_Refl_points):
+        # Load IPW frames
+        IPWFeatures = np.concatenate(map(lambda x: x[0],IPW_Refl_points))
+        Y = IPWFeatures[:,-1].reshape(IPWFeatures.shape[0],1)
+        # Load Refl. frames
+        ReflFeatures = np.concatenate(map(lambda x: x[1].astype('float32'),IPW_Refl_points))
+        # Stack frames into volumes
+        IPWFeatures = IPWFeatures[:,:-1].reshape(IPWFeatures.shape[0],6,33,33)
+        ReflFeatures = ReflFeatures.reshape(IPWFeatures.shape[0],6,33,33)
+        # Use frames from one hour ago
+        IPWFeatures = IPWFeatures[:,2:,:,:]
+        ReflFeatures = ReflFeatures[:,2:,:,:]
+        # Merge IPW and reflectivity to create volume of shape 33x33x8
+        X = np.concatenate((IPWFeatures,ReflFeatures),axis=1)
+        # return data sets
+        return X,Y
+        
+#def load_data_set(set_no = 3):
+#    # Temporarely route the data from summer
+#    file_list = os.listdir('data/TrainTest/RandomPoints/')
+#    file_list = filter(lambda x: x[:3] == 'IPW',file_list)
+#    random_points_file = file('data/TrainTest/RandomPoints/' + file_list[set_no],'rb')
+#    data_set = cPickle.load(random_points_file)
+#    random_points_file.close()
+#    return data_set
+    
+#def build_data_set(set_no):
+#    # Load entire 1500 points
+#    data = load_data_set(set_no = set_no)
+#    
+#    IPWFeatures = np.concatenate(map(lambda x: x[0].astype('float32'),data))
+#    
+#    Y_train = IPWFeatures[:,-1].reshape(IPWFeatures.shape[0],1)
+#    
+#    IPWFeatures = IPWFeatures[:,:-1].reshape(IPWFeatures.shape[0],6,33,33)
+#    
+#    IPWFeatures = IPWFeatures[:,2:,:,:]
+#    
+#    ReflFeatures = np.concatenate(map(lambda x: x[1].astype('float32'),data))
+#    
+#    ReflFeatures = ReflFeatures.reshape(IPWFeatures.shape[0],6,33,33)
+#    
+#    ReflFeatures = ReflFeatures[:,2:,:,:]
+#    
+#    X_train = np.concatenate((IPWFeatures,ReflFeatures),axis=1)
+#    
+#    print X_train.shape,Y_train.shape
+#    
+#    return X_train,Y_train
+        
+
+
 
 
 
