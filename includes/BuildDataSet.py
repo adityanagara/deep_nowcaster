@@ -84,15 +84,20 @@ class dataset(object):
         
         '''
         Threshold = self.Threshold
-        # Initialize array (4536 for 4 time steps of IPW fields, and one for ground truth)
+        # Define IPW array (6534 for 6 time steps of IPW fields, and one for ground truth)
         out_matrixIPW = np.zeros((len(temp_ipw_file_list),1089*6 + 1),dtype='float32')
-        out_matrixRadar = np.zeros((len(temp_ipw_file_list),1089*6),dtype='float32')
+        # Define reflectivity array same as IPW array        
+        out_matrixRadar = np.zeros((len(temp_radar_file_list),1089*6),dtype='float32')
         i_start = x_ -16
         i_end = x_ + 17
         j_start = y_ -16
         j_end = y_ + 17
-
+        # Initialize both the array to nan, this will make it easier to drop examples 
+        # which do not have all the time frames as an example will need 2 hours of prior data
+        # ex. of a case with no data will be start of new UTC day from the storm dates picked
         out_matrixIPW[:] = np.nan
+        out_matrixRadar[:] = np.nan
+        
         matrix_ctr = 0
     
         for i_file,r_file in zip(temp_ipw_file_list,temp_radar_file_list):
@@ -226,17 +231,22 @@ class dataset(object):
     
     def arrange_frames(self,IPW_Refl_points):
         # Load IPW frames
-        IPWFeatures = np.concatenate(map(lambda x: x[0],IPW_Refl_points))
+        IPWFeatures = np.concatenate(map(lambda x: x[0].astype('float32'),IPW_Refl_points))      
+        # Drop all time stamps which do not have the last 4 frames or any row that has a nan value        
+        IPWFeatures = IPWFeatures[~np.any(np.isnan(IPWFeatures),axis = 1),:]
+        # Load ground truth
         Y = IPWFeatures[:,-1].reshape(IPWFeatures.shape[0],1)
         # Load Refl. frames
         ReflFeatures = np.concatenate(map(lambda x: x[1].astype('float32'),IPW_Refl_points))
+        # Drop all time stamps which do not have the last 4 frames        
+        ReflFeatures = ReflFeatures[~np.any(np.isnan(ReflFeatures),axis = 1),:]
         # Stack frames into volumes
         IPWFeatures = IPWFeatures[:,:-1].reshape(IPWFeatures.shape[0],6,33,33)
-        ReflFeatures = ReflFeatures.reshape(IPWFeatures.shape[0],6,33,33)
-        # Use frames from one hour ago
+        ReflFeatures = ReflFeatures.reshape(ReflFeatures.shape[0],6,33,33)
+        # Use frames from one hour ago, this will drip the current frame and frame at t -30
         IPWFeatures = IPWFeatures[:,2:,:,:]
         ReflFeatures = ReflFeatures[:,2:,:,:]
-        # Merge IPW and reflectivity to create volume of shape 33x33x8
+        # Merge IPW and reflectivity to create volume of shape number of examples x 8 x 33 x 33
         X = np.concatenate((IPWFeatures,ReflFeatures),axis=1)
         # return data sets
         return X,Y
