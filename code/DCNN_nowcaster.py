@@ -129,9 +129,10 @@ def iterate_minibatches(inputs, targets, batchsize, shuffle=False):
                                    
 
 def main(file_name = 'test_file.csv',num_points = 10,compute_flag='cpu'):
-    print 'Saving file to %s' % file_name
-    print 'Number of points %d ' % num_points
-    print 'Compute Flag: % ' % compute_flag
+    num_points = int(num_points)
+    print 'Saving file to: %s' % file_name
+    print 'Number of points: %d ' % num_points
+    print 'Compute Flag: %s ' % compute_flag
     save_file(file_name)
     # Define number of example points to sample
     
@@ -188,7 +189,7 @@ def main(file_name = 'test_file.csv',num_points = 10,compute_flag='cpu'):
             epoch + 1, num_epochs, time.time() - start_time))
         print("  training loss:\t\t{:.6f}".format(train_err / train_batches))
         append_file(file_name,epoch + 1,round(train_err / train_batches,2),0)
-        network_file = file('output/neteork_' + str(epoch + 1) + '.pkl')
+        network_file = file('output/neteork_' + str(epoch + 1) + '.pkl','wb')
         cPickle.dump(network,network_file,protocol = cPickle.HIGHEST_PROTOCOL)
         network_file.close()
 

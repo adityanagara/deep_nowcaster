@@ -1,2 +1,3 @@
 /.DS_Store
-
+output/experiment_1.csv
+output/*.pkl
