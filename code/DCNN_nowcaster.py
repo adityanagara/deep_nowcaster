@@ -20,7 +20,12 @@ import time
 from matplotlib import pyplot as plt
 import lasagne
 from lasagne.regularization import regularize_layer_params, l2, l1
-    
+
+import csv
+import cPickle
+
+import sys
+
 def build_DCNN(input_var = None):
     
     from lasagne.layers import dnn
@@ -55,8 +60,21 @@ def build_DCNN(input_var = None):
             b=lasagne.init.Constant(.1)
         )
     
-    return l_out
+    return l_out,l_hidden1
 
+def save_file(file_name):
+    file_path = 'output/' + file_name
+    with open(file_path,'wb') as csvfile:
+        csvwriter = csv.writer(csvfile)
+        csvwriter.writerow(['epoch_number','training_loss','validation_loss'])
+
+def append_file(file_name):
+    file_path = 'output/' + file_name
+    with open(file_path,'a') as csvfile:
+        csvwriter = csv.writer(csvfile)
+        csvwriter.writerow([1,2,3])
+
+    
 def build_CNN(input_var = None):
     
 #    from lasagne.layers import dnn
@@ -110,9 +128,10 @@ def iterate_minibatches(inputs, targets, batchsize, shuffle=False):
 
                                    
 
-def main():
+def main(file_name = 'test_file.csv',num_points = 10):
+    save_file(file_name)
     # Define number of example points to sample
-    num_points = 10
+    
     # Define the threshold as none so that we use actual values of reflectivity
     data_builder = BuildDataSet.dataset(Threshold = None)
     # Sample points and make the IPW and refl frames
@@ -134,23 +153,16 @@ def main():
     l1_penalty = regularize_layer_params(l_hidden1, l1)
     
     loss = loss + l1_penalty
-#    loss = loss.mean()
     
     params = lasagne.layers.get_all_params(network, trainable=True)
     
-#    updates = lasagne.updates.sgd(loss, params, 0.001)
     updates = lasagne.updates.nesterov_momentum(
             loss, params, learning_rate=0.0000001, momentum=0.9)
             
-    
-#    test_prediction = lasagne.layers.get_output(network, deterministic=True)
-    
-#    test_loss = lasagne.objectives.squared_error(test_prediction,
-#                                                            output_var)
+
     
     train_fn = theano.function([input_var, output_var], loss, updates=updates)
     
-#    val_fn = theano.function([input_var, output_var], [test_loss])
     
     num_epochs = 100
     # Start training
@@ -165,52 +177,48 @@ def main():
             train_err += train_fn(inputs, targets)
             train_batches += 1
 
-        # And a full pass over the validation data:
-#        val_err = 0
-#        val_acc = 0
-#        val_batches = 0
-#        for batch in iterate_minibatches(X_val, y_val, 500, shuffle=False):
-#            inputs, targets = batch
-#            err, acc = val_fn(inputs, targets)
-#            val_err += err
-#            val_acc += acc
-#            val_batches += 1
-
-        # Then we print the results for this epoch:
         print train_batches
         print("Epoch {} of {} took {:.3f}s".format(
             epoch + 1, num_epochs, time.time() - start_time))
         print("  training loss:\t\t{:.6f}".format(train_err / train_batches))
-#        print("  validation loss:\t\t{:.6f}".format(val_err / val_batches))
-#        print("  validation accuracy:\t\t{:.2f} %".format(
-#            val_acc / val_batches * 100))
-#
-#    # After training, we compute and print the test error:
-#    test_err = 0
-#    test_acc = 0
-#    test_batches = 0
-#    for batch in iterate_minibatches(X_test, y_test, 500, shuffle=False):
-#        inputs, targets = batch
-#        err, acc = val_fn(inputs, targets)
-#        test_err += err
-#        test_acc += acc
-#        test_batches += 1
-#    print("Final results:")
-#    print("  test loss:\t\t\t{:.6f}".format(test_err / test_batches))
-#    print("  test accuracy:\t\t{:.2f} %".format(
-#        test_acc / test_batches * 100))
-
-    # Optionally, you could now dump the network weights to a file like this:
-    # np.savez('model.npz', *lasagne.layers.get_all_param_values(network))
-    #
-    # And load them again later on like this:
-    # with np.load('model.npz') as f:
-    #     param_values = [f['arr_%d' % i] for i in range(len(f.files))]
-    # lasagne.layers.set_all_param_values(network, param_values)
 
 
-if __name__ == '__main__':        
-    main()
+if __name__ == '__main__':
+    if '--help' is sys.argv:
+        print 'Help Stuff!!'
+    else:
+        kwargs = {}
+        if len(sys.argv) > 1:
+            kwargs['file_name'] = sys.argv[1]
+        else:
+            
+    file_name = sys.argv[1]
+    
+    append_file(file_name)
+    append_file(file_name)
+    print 'Done!'
+    
+
+#if __name__ == '__main__':
+#    if ('--help' in sys.argv) or ('-h' in sys.argv):
+#        print("Trains a neural network on MNIST using Lasagne.")
+#        print("Usage: %s [MODEL [EPOCHS]]" % sys.argv[0])
+#        print()
+#        print("MODEL: 'mlp' for a simple Multi-Layer Perceptron (MLP),")
+#        print("       'custom_mlp:DEPTH,WIDTH,DROP_IN,DROP_HID' for an MLP")
+#        print("       with DEPTH hidden layers of WIDTH units, DROP_IN")
+#        print("       input dropout and DROP_HID hidden dropout,")
+#        print("       'cnn' for a simple Convolutional Neural Network (CNN).")
+#        print("EPOCHS: number of training epochs to perform (default: 500)")
+#    else:
+#        kwargs = {}
+#        if len(sys.argv) > 1:
+#            kwargs['model'] = sys.argv[1]
+#        if len(sys.argv) > 2:
+#            kwargs['num_epochs'] = int(sys.argv[2])
+#        main(**kwargs)
+        
+#    main()
     
     
         
