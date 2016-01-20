@@ -68,7 +68,7 @@ def save_file(file_name):
         csvwriter = csv.writer(csvfile)
         csvwriter.writerow(['epoch_number','training_loss','validation_loss'])
 
-def append_file(file_name):
+def append_file(file_name,val_1,val_2,val_3):
     file_path = 'output/' + file_name
     with open(file_path,'a') as csvfile:
         csvwriter = csv.writer(csvfile)
@@ -128,7 +128,10 @@ def iterate_minibatches(inputs, targets, batchsize, shuffle=False):
 
                                    
 
-def main(file_name = 'test_file.csv',num_points = 10):
+def main(file_name = 'test_file.csv',num_points = 10,compute_flag='cpu'):
+    print 'Saving file to %s' % file_name
+    print 'Number of points %d ' % num_points
+    print 'Compute Flag: % ' % compute_flag
     save_file(file_name)
     # Define number of example points to sample
     
@@ -144,7 +147,10 @@ def main(file_name = 'test_file.csv',num_points = 10):
     # Define the output tensor (in this case it is a real value or reflectivity values)
     output_var = T.fcol('targets')
     
-    network,l_hidden1 = build_CNN(input_var)
+    if compute_flag =='cpu': 
+        network,l_hidden1 = build_CNN(input_var)
+    else:
+        network,l_hidden1 = build_DCNN(input_var)
     
     train_prediction = lasagne.layers.get_output(network)
     
@@ -181,6 +187,10 @@ def main(file_name = 'test_file.csv',num_points = 10):
         print("Epoch {} of {} took {:.3f}s".format(
             epoch + 1, num_epochs, time.time() - start_time))
         print("  training loss:\t\t{:.6f}".format(train_err / train_batches))
+        append_file(file_name,epoch + 1,round(train_err / train_batches,2),0)
+        network_file = file('output/neteork_' + str(epoch + 1) + '.pkl')
+        cPickle.dump(network,network_file,protocol = cPickle.HIGHEST_PROTOCOL)
+        network_file.close()
 
 
 if __name__ == '__main__':
@@ -190,14 +200,21 @@ if __name__ == '__main__':
         kwargs = {}
         if len(sys.argv) > 1:
             kwargs['file_name'] = sys.argv[1]
-        else:
-            
-    file_name = sys.argv[1]
+        if len(sys.argv) > 2:
+            kwargs['num_points'] = sys.argv[2]
+        if len(sys.argv) > 3:
+            kwargs['compute_flag'] = sys.argv[3]
+    main(**kwargs)
     
-    append_file(file_name)
-    append_file(file_name)
     print 'Done!'
-    
+
+'''
+>>> f = file('obj.save', 'wb')
+>>> cPickle.dump(my_obj, f, protocol=cPickle.HIGHEST_PROTOCOL)
+>>> f.close()
+
+'''
+
 
 #if __name__ == '__main__':
 #    if ('--help' in sys.argv) or ('-h' in sys.argv):
