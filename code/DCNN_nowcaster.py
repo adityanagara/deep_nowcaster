@@ -6,18 +6,13 @@ Created on Tue Jan  5 11:48:23 2016
 """
 
 import numpy as np
-import os
 import theano
 
 from theano import tensor as T
 import BuildDataSet
-import nowcast
-
-import random
 
 import time
 
-from matplotlib import pyplot as plt
 import lasagne
 from lasagne.regularization import regularize_layer_params, l2, l1
 
@@ -72,7 +67,7 @@ def append_file(file_name,val_1,val_2,val_3):
     file_path = 'output/' + file_name
     with open(file_path,'a') as csvfile:
         csvwriter = csv.writer(csvfile)
-        csvwriter.writerow([1,2,3])
+        csvwriter.writerow([val_1,val_2,val_3])
 
     
 def build_CNN(input_var = None):
@@ -172,6 +167,7 @@ def main(file_name = 'test_file.csv',num_points = 10,compute_flag='cpu'):
     
     
     num_epochs = 100
+    experiment_start_time = time.time()
     # Start training
     for epoch in range(num_epochs):
         # In each epoch, we do a full pass over the training data:
@@ -192,6 +188,7 @@ def main(file_name = 'test_file.csv',num_points = 10,compute_flag='cpu'):
         network_file = file('output/neteork_' + str(epoch + 1) + '.pkl','wb')
         cPickle.dump(network,network_file,protocol = cPickle.HIGHEST_PROTOCOL)
         network_file.close()
+    print('The experiment took {:.3f}s'.format(time.time() - experiment_start_time))
 
 
 if __name__ == '__main__':
@@ -207,37 +204,7 @@ if __name__ == '__main__':
             kwargs['compute_flag'] = sys.argv[3]
     main(**kwargs)
     
-    print 'Done!'
-
-'''
->>> f = file('obj.save', 'wb')
->>> cPickle.dump(my_obj, f, protocol=cPickle.HIGHEST_PROTOCOL)
->>> f.close()
-
-'''
-
-
-#if __name__ == '__main__':
-#    if ('--help' in sys.argv) or ('-h' in sys.argv):
-#        print("Trains a neural network on MNIST using Lasagne.")
-#        print("Usage: %s [MODEL [EPOCHS]]" % sys.argv[0])
-#        print()
-#        print("MODEL: 'mlp' for a simple Multi-Layer Perceptron (MLP),")
-#        print("       'custom_mlp:DEPTH,WIDTH,DROP_IN,DROP_HID' for an MLP")
-#        print("       with DEPTH hidden layers of WIDTH units, DROP_IN")
-#        print("       input dropout and DROP_HID hidden dropout,")
-#        print("       'cnn' for a simple Convolutional Neural Network (CNN).")
-#        print("EPOCHS: number of training epochs to perform (default: 500)")
-#    else:
-#        kwargs = {}
-#        if len(sys.argv) > 1:
-#            kwargs['model'] = sys.argv[1]
-#        if len(sys.argv) > 2:
-#            kwargs['num_epochs'] = int(sys.argv[2])
-#        main(**kwargs)
-        
-#    main()
-    
+    print 'Done!' 
     
         
     
