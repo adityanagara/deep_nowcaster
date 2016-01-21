@@ -8,7 +8,7 @@ Created on Tue Oct  6 09:23:41 2015
 import os
 import numpy as np
 import re
-from matplotlib import pyplot as plt
+#from matplotlib import pyplot as plt
 import random
 
 Basefile = '/Users/adityanagarajan/Summer_2015/ConvectiveInitiation/data/TrainTest/'
@@ -171,22 +171,22 @@ class dataset(object):
             # increment counter
             matrix_ctr+=1
         return out_matrixIPW,out_matrixRadar
-    def plot_domain(self,PixelPoints,marker = 'r*'):
-        
-        gridX = np.arange(-150.0,151.0,300.0/(100-1))
-        gridY = np.arange(-150.0,151.0,300.0/(100-1))
-        # Loop through each pair to plot on the grod
-        for p in PixelPoints:
-            plt.plot(gridX[p[0]],gridY[p[1]],marker)
-
-        plt.xlabel('Easting')
-    
-        plt.ylabel('Northing')
-
-        plt.xlim((-150.0,150.0))
-
-        plt.ylim((-150.0,150.0))
-        plt.grid()
+#    def plot_domain(self,PixelPoints,marker = 'r*'):
+#        
+#        gridX = np.arange(-150.0,151.0,300.0/(100-1))
+#        gridY = np.arange(-150.0,151.0,300.0/(100-1))
+#        # Loop through each pair to plot on the grod
+#        for p in PixelPoints:
+#            plt.plot(gridX[p[0]],gridY[p[1]],marker)
+#
+#        plt.xlabel('Easting')
+#    
+#        plt.ylabel('Northing')
+#
+#        plt.xlim((-150.0,150.0))
+#
+#        plt.ylim((-150.0,150.0))
+#        plt.grid()
     
     def sample_random_pixels(self):
         

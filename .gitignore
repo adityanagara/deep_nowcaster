@@ -3,3 +3,4 @@ output/experiment_1.csv
 output/*.pkl
 data/
 output/
+includes/*.pyc
