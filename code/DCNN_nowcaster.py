@@ -227,22 +227,11 @@ def main(num_epochs = 100,num_points = 10,compute_flag='cpu'):
     save_file(results_file_name)
     # Define number of example points to sample
     
-    # Define the threshold as none so that we use actual values of reflectivity
-    data_builder = BuildDataSet.dataset(Threshold = None)
-    # Sample 1500 points and make the IPW and refl frames
-    PixelPoints = data_builder.sample_random_pixels()
-    print('Building training set...')
-    train_set = data_builder.make_points_frames(PixelPoints[:num_points])
-    X_train,Y_train = data_builder.arrange_frames(train_set)
+    
     # Define the input tensor
     input_var = T.tensor4('inputs')
     # Define the output tensor (in this case it is a real value or reflectivity values)
     output_var = T.fcol('targets')
-    print('Building validation set...')
-    # Build the validation set take the last num_points
-    validation_set = data_builder.make_points_frames(PixelPoints[-num_points:])
-    X_val,Y_val = data_builder.arrange_frames(validation_set)
-    
     # User input to decide which experiment to run, cpu runs were performed
     # to check if the network was working correctly
     if compute_flag =='cpu': 
@@ -255,6 +244,19 @@ def main(num_epochs = 100,num_points = 10,compute_flag='cpu'):
     else:
         network,l_hidden1 = build_DCNN(input_var)
     
+    # Define the threshold as none so that we use actual values of reflectivity
+    data_builder = BuildDataSet.dataset(Threshold = None)
+    # Sample 1500 points and make the IPW and refl frames
+    PixelPoints = data_builder.sample_random_pixels()
+    print('Building training set...')
+    train_set = data_builder.make_points_frames(PixelPoints[:num_points])
+    X_train,Y_train = data_builder.arrange_frames(train_set)
+    
+    print('Building validation set...')
+    # Build the validation set take the last num_points
+    validation_set = data_builder.make_points_frames(PixelPoints[-num_points:])
+    X_val,Y_val = data_builder.arrange_frames(validation_set)
+
     train_prediction = lasagne.layers.get_output(network)
     test_prediction = lasagne.layers.get_output(network)
     # Define the mean square error objective function
