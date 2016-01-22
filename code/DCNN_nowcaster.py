@@ -5,20 +5,23 @@ Created on Tue Jan  5 11:48:23 2016
 @author: adityanagarajan
 """
 
-import numpy as np
-import theano
 
-from theano import tensor as T
+
+
+# Custom package in ./includes
 import BuildDataSet
-
-import time
-
+# Numerical package
+import numpy as np
+# Deep learning packages 
+import theano
+from theano import tensor as T
 import lasagne
 from lasagne.regularization import regularize_layer_params, l2, l1
 
+# Misc. packages 
+import time
 import csv
 import cPickle
-
 import sys
 
 def build_DCNN(input_var = None):
@@ -214,23 +217,20 @@ def iterate_minibatches(inputs, targets, batchsize, shuffle=False):
             excerpt = slice(start_idx, start_idx + batchsize)
         yield inputs[excerpt], targets[excerpt]
 
-                                   
-
 def main(num_epochs = 100,num_points = 10,compute_flag='cpu'):
+    # Arguments passed as string need to be converted to int    
     num_epochs = int(num_epochs)
+    num_points = int(num_points)
+    # Define name of output files
     results_file_name = 'exp_' + str(num_epochs) + '_' + str(num_points) + '_' + compute_flag + '.csv'
     network_file_name = 'network_' + str(num_epochs) + '_' + str(num_points) + '_' + compute_flag 
-    num_points = int(num_points)
     print 'Saving file to: %s' % results_file_name
     print 'Number of points: %d ' % num_points
     print 'Compute Flag: %s ' % compute_flag
-    save_file(results_file_name)
-    # Define number of example points to sample
-    
-    
+    save_file(results_file_name)    
     # Define the input tensor
     input_var = T.tensor4('inputs')
-    # Define the output tensor (in this case it is a real value or reflectivity values)
+    # Define the output tensor (in this case it is a real value or reflectivity)
     output_var = T.fcol('targets')
     # User input to decide which experiment to run, cpu runs were performed
     # to check if the network was working correctly
@@ -248,14 +248,16 @@ def main(num_epochs = 100,num_points = 10,compute_flag='cpu'):
     data_builder = BuildDataSet.dataset(Threshold = None)
     # Sample 1500 points and make the IPW and refl frames
     PixelPoints = data_builder.sample_random_pixels()
+    # reverse the list for validation set
+    rev_PixelPoints = PixelPoints[::-1]
     print('Building training set...')
-    train_set = data_builder.make_points_frames(PixelPoints[:num_points])
-    X_train,Y_train = data_builder.arrange_frames(train_set)
+#    train_set = data_builder.make_points_frames(PixelPoints[:num_points])
+#    X_train,Y_train = data_builder.arrange_frames(train_set)
     
     print('Building validation set...')
     # Build the validation set take the last num_points
-    validation_set = data_builder.make_points_frames(PixelPoints[-num_points:])
-    X_val,Y_val = data_builder.arrange_frames(validation_set)
+#    validation_set = data_builder.make_points_frames(PixelPoints[-num_points:])
+#    X_val,Y_val = data_builder.arrange_frames(validation_set)
 
     train_prediction = lasagne.layers.get_output(network)
     test_prediction = lasagne.layers.get_output(network)
@@ -282,23 +284,57 @@ def main(num_epochs = 100,num_points = 10,compute_flag='cpu'):
     
     experiment_start_time = time.time()
     # Start training
+    # Load each point from disc to avoid memory error for > 50 points
+    # Pass through all points in the training data
     for epoch in range(num_epochs):
-        # In each epoch, we do a full pass over the training data:
         train_err = 0
         train_batches = 0
         start_time = time.time()
-        for batch in iterate_minibatches(X_train, Y_train, 1059, shuffle=False):
-            inputs, targets = batch
-            train_err += train_fn(inputs, targets)
-            train_batches += 1
-        # And a full pass over the validation data:
+        prev_pt_tr = 0
+        for tr_pt in range(0,num_points,10):
+            print('Loading 20 points onto memory...')
+            train_set = data_builder.make_points_frames(PixelPoints[prev_pt_tr:tr_pt + 10])
+            X_train,Y_train = data_builder.arrange_frames(train_set)
+            for batch in iterate_minibatches(X_train, Y_train, 1059, shuffle=False):
+                inputs, targets = batch
+                print inputs.shape,targets.shape
+                train_err += train_fn(inputs, targets)
+                train_batches += 1
+            prev_pt_tr += 10
         val_err = 0
         val_batches = 0
-        for batch in iterate_minibatches(X_val, Y_val, 1059, shuffle=False):
-            inputs, targets = batch
-            err = test_fn(inputs, targets)
-            val_err += err
-            val_batches += 1
+        # Validation set is constant with last 100 points
+        # Full pass over validation set at each epoch
+        prev_pt_val = 0
+        for val_pt in range(20):
+            print('Loading 20 validation points onto memory...')
+            validation_set = data_builder.make_points_frames(rev_PixelPoints[prev_pt_val:val_pt+10])
+            X_val,Y_val = data_builder.arrange_frames(validation_set)
+            for batch in iterate_minibatches(X_val, Y_val, 1059, shuffle=False):
+                inputs, targets = batch
+                print inputs.shape,targets.shape
+                err = test_fn(inputs, targets)
+                val_err += err
+                val_batches += 1
+            prev_pt_val+=10
+    # Start training
+#    for epoch in range(num_epochs):
+#        # In each epoch, we do a full pass over the training data:
+#        train_err = 0
+#        train_batches = 0
+#        start_time = time.time()
+#        for batch in iterate_minibatches(X_train, Y_train, 1059, shuffle=False):
+#            inputs, targets = batch
+#            train_err += train_fn(inputs, targets)
+#            train_batches += 1
+        # And a full pass over the validation data:
+#        val_err = 0
+#        val_batches = 0
+#        for batch in iterate_minibatches(X_val, Y_val, 1059, shuffle=False):
+#            inputs, targets = batch
+#            err = test_fn(inputs, targets)
+#            val_err += err
+#            val_batches += 1
         
         print("Epoch {} of {} took {:.3f}s".format(
             epoch + 1, num_epochs, time.time() - start_time))
