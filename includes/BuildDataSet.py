@@ -7,17 +7,20 @@ Created on Tue Oct  6 09:23:41 2015
 
 import os
 import numpy as np
-import re
-#from matplotlib import pyplot as plt
 import random
 
-Basefile = '/Users/adityanagarajan/Summer_2015/ConvectiveInitiation/data/TrainTest/'
+Basefile = 'data/dataset/'
+'''
+This package deals with building data sets for training a machine learning
+based nowcasting system. This means we can build 3 frames of IPW and 4 frames
+of reflectivity for each sampled point. 
+'''
 
 class dataset(object):
     """This class builds the data set given the pixel points
     """
     def __init__(self,Threshold = 24.0,num_points = 1500):
-        self.TrainTestdir = '/Users/adityanagarajan/Summer_2015/ConvectiveInitiation/data/TrainTest/'
+        self.TrainTestdir = 'data/dataset/'
         self.IPWfiles, self.Radarfiles = self._sort_IPW_refl_files()
         self.Threshold = Threshold
         self.num_points = num_points 
@@ -171,22 +174,6 @@ class dataset(object):
             # increment counter
             matrix_ctr+=1
         return out_matrixIPW,out_matrixRadar
-#    def plot_domain(self,PixelPoints,marker = 'r*'):
-#        
-#        gridX = np.arange(-150.0,151.0,300.0/(100-1))
-#        gridY = np.arange(-150.0,151.0,300.0/(100-1))
-#        # Loop through each pair to plot on the grod
-#        for p in PixelPoints:
-#            plt.plot(gridX[p[0]],gridY[p[1]],marker)
-#
-#        plt.xlabel('Easting')
-#    
-#        plt.ylabel('Northing')
-#
-#        plt.xlim((-150.0,150.0))
-#
-#        plt.ylim((-150.0,150.0))
-#        plt.grid()
     
     def sample_random_pixels(self):
         
@@ -229,6 +216,7 @@ class dataset(object):
 
         return IPW_Refl_points
     
+    # This function is for arranging frames with list of tuples tmp_array = (out_matrixIPW,out_matrixRadar)
     def arrange_frames(self,IPW_Refl_points):
         # Load IPW frames
         IPWFeatures = np.concatenate(map(lambda x: x[0].astype('float32'),IPW_Refl_points))      
@@ -238,6 +226,29 @@ class dataset(object):
         Y = IPWFeatures[:,-1].reshape(IPWFeatures.shape[0],1)
         # Load Refl. frames
         ReflFeatures = np.concatenate(map(lambda x: x[1].astype('float32'),IPW_Refl_points))
+        # Drop all time stamps which do not have the last 4 frames        
+        ReflFeatures = ReflFeatures[~np.any(np.isnan(ReflFeatures),axis = 1),:]
+        # Stack frames into volumes
+        IPWFeatures = IPWFeatures[:,:-1].reshape(IPWFeatures.shape[0],6,33,33)
+        ReflFeatures = ReflFeatures.reshape(ReflFeatures.shape[0],6,33,33)
+        # Use frames from one hour ago, this will drip the current frame and frame at t -30
+        IPWFeatures = IPWFeatures[:,2:,:,:]
+        ReflFeatures = ReflFeatures[:,2:,:,:]
+        # Merge IPW and reflectivity to create volume of shape number of examples x 8 x 33 x 33
+        X = np.concatenate((IPWFeatures,ReflFeatures),axis=1)
+        # return data sets
+        return X,Y
+    
+    # This function is to arrange frames with single days or string of days
+    def arrange_frames_single(self,IPW_Refl_points):
+        # Load IPW frames
+        IPWFeatures = IPW_Refl_points[0]
+        # Drop all time stamps which do not have the last 4 frames or any row that has a nan value        
+        IPWFeatures = IPWFeatures[~np.any(np.isnan(IPWFeatures),axis = 1),:]
+        # Load ground truth
+        Y = IPWFeatures[:,-1].reshape(IPWFeatures.shape[0],1)
+        # Load Refl. frames
+        ReflFeatures = IPW_Refl_points[1]
         # Drop all time stamps which do not have the last 4 frames        
         ReflFeatures = ReflFeatures[~np.any(np.isnan(ReflFeatures),axis = 1),:]
         # Stack frames into volumes

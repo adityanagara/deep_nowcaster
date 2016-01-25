@@ -15,7 +15,8 @@ import re
 
 class BuildNowcaster():
     def __init__(self):
-        self.base_dir = '/Users/adityanagarajan/Summer_2015/ConvectiveInitiation/data/TrainTest/Features/'
+        self.base_dir = 'data/dataset/'
+        self.domain_points = (range(17,83),range(17,83))
         
     def sort_filter_files(self,PixelX,PixelY,doy_set):
         file_list = os.listdir(self.base_dir)
@@ -43,21 +44,25 @@ class BuildNowcaster():
     
         return ipw_files,radar_files
     
-    def plot_domains(self,PixelX,PixelY,marker):
-
-        PixelPoints = [(x,y) for x in PixelX for y in PixelY]
-
-        PixelPoints = np.array(PixelPoints)
-
+    def plot_domain(self,PixelPoints,marker = 'r*'):
+        
         gridX = np.arange(-150.0,151.0,300.0/(100-1))
         gridY = np.arange(-150.0,151.0,300.0/(100-1))
-
-        #Plot domain
+        # Loop through each pair to plot on the grod
         for p in PixelPoints:
             plt.plot(gridX[p[0]],gridY[p[1]],marker)
 
         plt.xlabel('Easting')
+    
         plt.ylabel('Northing')
+
+        plt.xlim((-150.0,150.0))
+
+        plt.ylim((-150.0,150.0))
+        plt.grid()
+    
+    def make_prediction(self,doy):
+        
 
 
 

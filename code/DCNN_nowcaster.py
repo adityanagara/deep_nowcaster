@@ -76,7 +76,6 @@ def append_file(file_name,val_1,val_2,val_3):
     
 def build_CNN(input_var = None):
     
-#    from lasagne.layers import dnn
     from lasagne.layers import Conv2DLayer
     # Define the input variable which is 4 frames of IPW fields and 4 frames of 
     # reflectivity fields
@@ -250,11 +249,9 @@ def main(num_epochs = 100,num_points = 10,compute_flag='cpu'):
     PixelPoints = data_builder.sample_random_pixels()
     # reverse the list for validation set
     rev_PixelPoints = PixelPoints[::-1]
-    print('Building training set...')
 #    train_set = data_builder.make_points_frames(PixelPoints[:num_points])
 #    X_train,Y_train = data_builder.arrange_frames(train_set)
     
-    print('Building validation set...')
     # Build the validation set take the last num_points
 #    validation_set = data_builder.make_points_frames(PixelPoints[-num_points:])
 #    X_val,Y_val = data_builder.arrange_frames(validation_set)
@@ -292,7 +289,7 @@ def main(num_epochs = 100,num_points = 10,compute_flag='cpu'):
         start_time = time.time()
         prev_pt_tr = 0
         for tr_pt in range(0,num_points,10):
-            print('Loading 20 points onto memory...')
+            print('Loading 10 points onto memory...')
             train_set = data_builder.make_points_frames(PixelPoints[prev_pt_tr:tr_pt + 10])
             X_train,Y_train = data_builder.arrange_frames(train_set)
             for batch in iterate_minibatches(X_train, Y_train, 1059, shuffle=False):
@@ -306,8 +303,8 @@ def main(num_epochs = 100,num_points = 10,compute_flag='cpu'):
         # Validation set is constant with last 100 points
         # Full pass over validation set at each epoch
         prev_pt_val = 0
-        for val_pt in range(20):
-            print('Loading 20 validation points onto memory...')
+        for val_pt in range(0,50,10):
+            print('Loading 10 validation points onto memory...')
             validation_set = data_builder.make_points_frames(rev_PixelPoints[prev_pt_val:val_pt+10])
             X_val,Y_val = data_builder.arrange_frames(validation_set)
             for batch in iterate_minibatches(X_val, Y_val, 1059, shuffle=False):
