@@ -86,7 +86,6 @@ class BuildNowcaster():
             predicted_ = movie_points[:,:,x_,1]
             real_[real_ < 20.0] = np.nan
             predicted_[predicted_ < 20.0] = np.nan
-#            gridZ = np.ma.array(gridZ, mask=np.isnan(gridZ))
             real_ = np.ma.array(real_, mask=np.isnan(real_))
             predicted_ = np.ma.array(predicted_, mask=np.isnan(predicted_))
             plt.pcolor(gridX_,gridY_,real_.T,cmap='jet', vmin=0.0, vmax=50.0)

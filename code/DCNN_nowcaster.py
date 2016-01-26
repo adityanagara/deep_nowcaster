@@ -249,13 +249,7 @@ def main(num_epochs = 100,num_points = 10,compute_flag='cpu'):
     PixelPoints = data_builder.sample_random_pixels()
     # reverse the list for validation set
     rev_PixelPoints = PixelPoints[::-1]
-#    train_set = data_builder.make_points_frames(PixelPoints[:num_points])
-#    X_train,Y_train = data_builder.arrange_frames(train_set)
     
-    # Build the validation set take the last num_points
-#    validation_set = data_builder.make_points_frames(PixelPoints[-num_points:])
-#    X_val,Y_val = data_builder.arrange_frames(validation_set)
-
     train_prediction = lasagne.layers.get_output(network)
     test_prediction = lasagne.layers.get_output(network)
     # Define the mean square error objective function
