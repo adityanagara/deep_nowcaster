@@ -23,6 +23,8 @@ import time
 import csv
 import cPickle
 import sys
+import os
+
 
 def build_DCNN(input_var = None):
     
@@ -155,6 +157,62 @@ def build_CNN_2(input_var = None):
         )
     
     return l_out,l_hidden1
+# 3 convolutional layers and 1 fully connected layer
+def build_CNN_3(input_var = None):
+    
+    from lasagne.layers import Conv2DLayer
+    # Define the input variable which is 4 frames of IPW fields and 4 frames of 
+    # reflectivity fields
+    l_in = lasagne.layers.InputLayer(shape=(None, 8, 33, 33),
+                                        input_var=input_var)
+    
+    l_conv1 = Conv2DLayer(
+            l_in,
+            num_filters=32,
+            filter_size=(5, 5),
+            stride=(2, 2),
+            nonlinearity=lasagne.nonlinearities.rectify,
+            W=lasagne.init.HeUniform(),
+            b=lasagne.init.Constant(.1)
+        )
+    
+    l_conv2 = Conv2DLayer(
+            l_conv1,
+            num_filters=64,
+            filter_size=(3, 3),
+            stride=(2, 2),
+            nonlinearity=lasagne.nonlinearities.rectify,
+            W=lasagne.init.HeUniform(),
+            b=lasagne.init.Constant(.1)
+        )
+    
+    l_conv3 = Conv2DLayer(
+            l_conv2,
+            num_filters=64,
+            filter_size=(3, 3),
+            stride=(2, 2),
+            nonlinearity=lasagne.nonlinearities.rectify,
+            W=lasagne.init.HeUniform(),
+            b=lasagne.init.Constant(.1)
+        )
+    
+    l_hidden1 = lasagne.layers.DenseLayer(
+            l_conv3,
+            num_units=2048,
+            nonlinearity=lasagne.nonlinearities.rectify,
+            W=lasagne.init.HeUniform(),
+            b=lasagne.init.Constant(.1)
+        )
+    
+    l_out = lasagne.layers.DenseLayer(
+            l_hidden1,
+            num_units=1,
+            nonlinearity=None,
+            W=lasagne.init.HeUniform(),
+            b=lasagne.init.Constant(.1)
+        )
+    
+    return l_out,l_hidden1
     
 def build_DCNN_2(input_var = None):
     
@@ -201,8 +259,6 @@ def build_DCNN_2(input_var = None):
         )
     
     return l_out,l_hidden1
-    
-    
 
 def iterate_minibatches(inputs, targets, batchsize, shuffle=False):
     assert len(inputs) == len(targets)
@@ -237,6 +293,8 @@ def main(num_epochs = 100,num_points = 10,compute_flag='cpu'):
         network,l_hidden1 = build_CNN(input_var)
     elif compute_flag == 'cpu2':
         network,l_hidden1 = build_CNN_2(input_var)
+    elif compute_flag == 'cpu3':
+        network,l_hidden1 = build_CNN_3(input_var)
     elif compute_flag == 'gpu2':
         print('gpu2 experiment')
         network,l_hidden1 = build_DCNN_2(input_var)
@@ -273,65 +331,45 @@ def main(num_epochs = 100,num_points = 10,compute_flag='cpu'):
     
     test_fn = theano.function([input_var, output_var],test_loss, updates=updates)
     
+    base_path = 'data/dataset2/'
+    training_set_list = os.listdir(base_path)
+    training_set_list = filter(lambda x: x[-4:] == '.pkl' and 'val' not in x,training_set_list)
+    validation_set_list = os.listdir(base_path)
+    validation_set_list = filter(lambda x: x[-4:] == '.pkl' and 'val' in x,validation_set_list)
     experiment_start_time = time.time()
     # Start training
     # Load each point from disc to avoid memory error for > 50 points
     # Pass through all points in the training data
+    # Pass through all points in validation set
     for epoch in range(num_epochs):
         train_err = 0
         train_batches = 0
+        val_batches = 0
+        val_err = 0
         start_time = time.time()
-        prev_pt_tr = 0
-        for tr_pt in range(0,num_points,10):
-            print('Loading 10 points onto memory...')
-            train_set = data_builder.make_points_frames(PixelPoints[prev_pt_tr:tr_pt + 10])
-            X_train,Y_train = data_builder.arrange_frames(train_set)
+        for file_name in training_set_list:
+            print('Loading 40 points onto memory...')
+            temp_file = file(base_path + file_name,'rb')
+            X_train,Y_train = cPickle.load(temp_file)
+            temp_file.close()
             for batch in iterate_minibatches(X_train, Y_train, 1059, shuffle=False):
                 inputs, targets = batch
                 print inputs.shape,targets.shape
                 train_err += train_fn(inputs, targets)
                 train_batches += 1
-            prev_pt_tr += 10
-        val_err = 0
-        val_batches = 0
-        # Validation set is constant with last 100 points
-        # Full pass over validation set at each epoch
-        prev_pt_val = 0
-        for val_pt in range(0,50,10):
-            print('Loading 10 validation points onto memory...')
-            validation_set = data_builder.make_points_frames(rev_PixelPoints[prev_pt_val:val_pt+10])
-            X_val,Y_val = data_builder.arrange_frames(validation_set)
+        for val_file in validation_set_list:
+            val_temp_file = file(base_path + val_file)
+            X_val,Y_val = cPickle.load(val_temp_file)
+            val_temp_file.close()
             for batch in iterate_minibatches(X_val, Y_val, 1059, shuffle=False):
                 inputs, targets = batch
-                print inputs.shape,targets.shape
                 err = test_fn(inputs, targets)
                 val_err += err
-                val_batches += 1
-            prev_pt_val+=10
-    # Start training
-#    for epoch in range(num_epochs):
-#        # In each epoch, we do a full pass over the training data:
-#        train_err = 0
-#        train_batches = 0
-#        start_time = time.time()
-#        for batch in iterate_minibatches(X_train, Y_train, 1059, shuffle=False):
-#            inputs, targets = batch
-#            train_err += train_fn(inputs, targets)
-#            train_batches += 1
-        # And a full pass over the validation data:
-#        val_err = 0
-#        val_batches = 0
-#        for batch in iterate_minibatches(X_val, Y_val, 1059, shuffle=False):
-#            inputs, targets = batch
-#            err = test_fn(inputs, targets)
-#            val_err += err
-#            val_batches += 1
-        
         print("Epoch {} of {} took {:.3f}s".format(
             epoch + 1, num_epochs, time.time() - start_time))
         print("  training loss:\t\t{:.6f}".format(train_err / train_batches))
         print("  validation loss:\t\t{:.6f}".format(val_err / val_batches))
-        append_file(results_file_name,epoch + 1,round(train_err / train_batches,2),val_err / val_batches)
+        append_file(results_file_name,epoch + 1,round(train_err / train_batches,2),round(val_err / val_batches,2))
         
         # Dump the network file every 100 epochs
         if (epoch + 1) % 100 == 0:
