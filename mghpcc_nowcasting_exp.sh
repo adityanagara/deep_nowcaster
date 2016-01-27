@@ -22,7 +22,5 @@ module load cudnn/v3_for_cuda_7.0
 module load python/2.7.9_packages/theano/0.7.0
 
 # our executable 
-python gpu_test.py
-python -c "from theano.sandbox.cuda.dnn import dnn_available as d; print(d() or d.msg)"
-python -c "from lasagne.layers import dnn"
+python /home/an67a/deep_nowcaster/code/DCNN_Nowcaster.py
 

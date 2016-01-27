@@ -213,6 +213,62 @@ def build_CNN_3(input_var = None):
         )
     
     return l_out,l_hidden1
+# 3 convolutional layers and 1 fully connected layer on GPU
+def build_DCNN_3(input_var = None):
+    
+    from lasagne.layers import dnn
+    # Define the input variable which is 4 frames of IPW fields and 4 frames of 
+    # reflectivity fields
+    l_in = lasagne.layers.InputLayer(shape=(None, 8, 33, 33),
+                                        input_var=input_var)
+    
+    l_conv1 = dnn.Conv2DDNNLayer(
+            l_in,
+            num_filters=32,
+            filter_size=(5, 5),
+            stride=(2, 2),
+            nonlinearity=lasagne.nonlinearities.rectify,
+            W=lasagne.init.HeUniform(),
+            b=lasagne.init.Constant(.1)
+        )
+    
+    l_conv2 = dnn.Conv2DDNNLayer(
+            l_conv1,
+            num_filters=64,
+            filter_size=(3, 3),
+            stride=(2, 2),
+            nonlinearity=lasagne.nonlinearities.rectify,
+            W=lasagne.init.HeUniform(),
+            b=lasagne.init.Constant(.1)
+        )
+    
+    l_conv3 = dnn.Conv2DDNNLayer(
+            l_conv2,
+            num_filters=64,
+            filter_size=(3, 3),
+            stride=(2, 2),
+            nonlinearity=lasagne.nonlinearities.rectify,
+            W=lasagne.init.HeUniform(),
+            b=lasagne.init.Constant(.1)
+        )
+    
+    l_hidden1 = lasagne.layers.DenseLayer(
+            l_conv3,
+            num_units=2048,
+            nonlinearity=lasagne.nonlinearities.rectify,
+            W=lasagne.init.HeUniform(),
+            b=lasagne.init.Constant(.1)
+        )
+    
+    l_out = lasagne.layers.DenseLayer(
+            l_hidden1,
+            num_units=1,
+            nonlinearity=None,
+            W=lasagne.init.HeUniform(),
+            b=lasagne.init.Constant(.1)
+        )
+    
+    return l_out,l_hidden1
     
 def build_DCNN_2(input_var = None):
     
@@ -272,7 +328,7 @@ def iterate_minibatches(inputs, targets, batchsize, shuffle=False):
             excerpt = slice(start_idx, start_idx + batchsize)
         yield inputs[excerpt], targets[excerpt]
 
-def main(num_epochs = 100,num_points = 10,compute_flag='cpu'):
+def main(num_epochs = 100,num_points = 1200,compute_flag='cpu'):
     # Arguments passed as string need to be converted to int    
     num_epochs = int(num_epochs)
     num_points = int(num_points)
@@ -331,7 +387,7 @@ def main(num_epochs = 100,num_points = 10,compute_flag='cpu'):
     
     test_fn = theano.function([input_var, output_var],test_loss, updates=updates)
     
-    base_path = 'data/dataset2/'
+    base_path = '/home/an67a/deep_nowcaster/data/dataset2/'
     training_set_list = os.listdir(base_path)
     training_set_list = filter(lambda x: x[-4:] == '.pkl' and 'val' not in x,training_set_list)
     validation_set_list = os.listdir(base_path)
@@ -374,7 +430,7 @@ def main(num_epochs = 100,num_points = 10,compute_flag='cpu'):
         # Dump the network file every 100 epochs
         if (epoch + 1) % 100 == 0:
             print('creating network file')
-            network_file = file('output/'+ network_file_name + '_' + str(epoch + 1) + '.pkl','wb')
+            network_file = file('/home/an67a/deep_nowcaster/output/'+ network_file_name + '_' + str(epoch + 1) + '.pkl','wb')
             cPickle.dump(network,network_file,protocol = cPickle.HIGHEST_PROTOCOL)
             network_file.close()
     time_taken = round(time.time() - experiment_start_time,2)

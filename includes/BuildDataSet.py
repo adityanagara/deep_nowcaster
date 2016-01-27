@@ -9,7 +9,7 @@ import os
 import numpy as np
 import random
 
-Basefile = 'data/dataset/'
+Basefile = '/home/an67a/deep_nowcaster/data/dataset/'
 '''
 This package deals with building data sets for training a machine learning
 based nowcasting system. This means we can build 3 frames of IPW and 4 frames
@@ -20,7 +20,7 @@ class dataset(object):
     """This class builds the data set given the pixel points
     """
     def __init__(self,Threshold = 24.0,num_points = 1500):
-        self.TrainTestdir = 'data/dataset/'
+        self.TrainTestdir = '/home/an67a/deep_nowcaster/data/dataset/'
         self.IPWfiles, self.Radarfiles = self._sort_IPW_refl_files()
         self.Threshold = Threshold
         self.num_points = num_points 
