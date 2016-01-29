@@ -25,7 +25,7 @@ import cPickle
 import sys
 import os
 
-
+sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
 def build_DCNN(input_var = None):
     
     from lasagne.layers import dnn
@@ -354,15 +354,12 @@ def main(num_epochs = 100,num_points = 1200,compute_flag='cpu'):
     elif compute_flag == 'gpu2':
         print('gpu2 experiment')
         network,l_hidden1 = build_DCNN_2(input_var)
+    elif compute_flag == 'gpu3':
+        print('gpu3 experiment')
+        network,l_hidden1 = build_DCNN_3(input_var)
     else:
         network,l_hidden1 = build_DCNN(input_var)
     
-    # Define the threshold as none so that we use actual values of reflectivity
-    data_builder = BuildDataSet.dataset(Threshold = None)
-    # Sample 1500 points and make the IPW and refl frames
-    PixelPoints = data_builder.sample_random_pixels()
-    # reverse the list for validation set
-    rev_PixelPoints = PixelPoints[::-1]
     
     train_prediction = lasagne.layers.get_output(network)
     test_prediction = lasagne.layers.get_output(network)
@@ -397,23 +394,25 @@ def main(num_epochs = 100,num_points = 1200,compute_flag='cpu'):
     # Load each point from disc to avoid memory error for > 50 points
     # Pass through all points in the training data
     # Pass through all points in validation set
+    print training_set_list
     for epoch in range(num_epochs):
+	print('Epoch number : %d '%epoch)
         train_err = 0
         train_batches = 0
         val_batches = 0
         val_err = 0
         start_time = time.time()
         for file_name in training_set_list:
-            print('Loading 40 points onto memory...')
+	    print file_name
             temp_file = file(base_path + file_name,'rb')
             X_train,Y_train = cPickle.load(temp_file)
             temp_file.close()
             for batch in iterate_minibatches(X_train, Y_train, 1059, shuffle=False):
                 inputs, targets = batch
-                print inputs.shape,targets.shape
                 train_err += train_fn(inputs, targets)
                 train_batches += 1
         for val_file in validation_set_list:
+	    print val_file
             val_temp_file = file(base_path + val_file)
             X_val,Y_val = cPickle.load(val_temp_file)
             val_temp_file.close()
@@ -421,6 +420,7 @@ def main(num_epochs = 100,num_points = 1200,compute_flag='cpu'):
                 inputs, targets = batch
                 err = test_fn(inputs, targets)
                 val_err += err
+                val_batches += 1
         print("Epoch {} of {} took {:.3f}s".format(
             epoch + 1, num_epochs, time.time() - start_time))
         print("  training loss:\t\t{:.6f}".format(train_err / train_batches))
