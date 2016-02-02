@@ -9,7 +9,7 @@ import os
 import numpy as np
 import random
 
-Basefile = '/home/an67a/deep_nowcaster/data/dataset/'
+Basefile = '/Users/adityanagarajan/projects/nowcaster/data/dataset/'
 '''
 This package deals with building data sets for training a machine learning
 based nowcasting system. This means we can build 3 frames of IPW and 4 frames
@@ -20,7 +20,7 @@ class dataset(object):
     """This class builds the data set given the pixel points
     """
     def __init__(self,Threshold = 24.0,num_points = 1500):
-        self.TrainTestdir = '/home/an67a/deep_nowcaster/data/dataset/'
+        self.TrainTestdir = '/Users/adityanagarajan/projects/nowcaster/data/dataset/'
         self.IPWfiles, self.Radarfiles = self._sort_IPW_refl_files()
         self.Threshold = Threshold
         self.num_points = num_points 
@@ -41,7 +41,7 @@ class dataset(object):
         
         Radarfiles.sort(key = lambda x: float(x[9:12]) + float(x[x.index('_') + 1: x.index('.')])* 0.01)
         
-        # Pull out june data for now
+        # Pull out june data for now June corresponds to DOY 152 - 181
         IPWfiles = filter(lambda x: int(x[7:10]) < 152 or int(x[7:10]) > 181,IPWfiles)
         
         Radarfiles = filter(lambda x: int(x[9:12]) < 152 or int(x[9:12]) > 181,Radarfiles)
@@ -109,12 +109,26 @@ class dataset(object):
             RadarMatrix[np.isnan(RadarMatrix)] = 0.0
             RadarMatrixFeature = RadarMatrix.copy()
             
-            if Threshold:
+            if Threshold == 'binary':
                 
                 RadarMatrix[RadarMatrix < Threshold] = 0.0
     
                 RadarMatrix[RadarMatrix >= Threshold] = 1.0
-        
+            
+            elif Threshold == 'bin':
+                
+                RadarMatrix[RadarMatrix < 10.0] = 0
+                
+                RadarMatrix[np.logical_and(RadarMatrix >= 10.0,RadarMatrix < 20.0)] = 1
+                
+                RadarMatrix[np.logical_and(RadarMatrix >= 20.0,RadarMatrix < 30.0)] = 2
+                
+                RadarMatrix[np.logical_and(RadarMatrix >= 30.0,RadarMatrix < 40.0)] = 3
+                
+                RadarMatrix[np.logical_and(RadarMatrix >= 40.0,RadarMatrix < 50.0)] = 4
+                
+                RadarMatrix[RadarMatrix >= 50.0] = 5
+                
             pointXY = RadarMatrix[y_,x_]
             out_matrixIPW[matrix_ctr,-1] = pointXY
             # Current field time stem in is the first 1089 features

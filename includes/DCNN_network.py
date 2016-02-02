@@ -182,6 +182,220 @@ class DCNN_network(object):
     
         return l_out,l_hidden1
     
+    # 3 convolutional layers and 1 fully connected layer on GPU
+    def build_DCNN_3(input_var = None):
+    
+        from lasagne.layers import dnn
+        # Define the input variable which is 4 frames of IPW fields and 4 frames of 
+        # reflectivity fields
+        l_in = lasagne.layers.InputLayer(shape=(None, 8, 33, 33),
+                                        input_var=input_var)
+    
+        l_conv1 = dnn.Conv2DDNNLayer(
+            l_in,
+            num_filters=32,
+            filter_size=(5, 5),
+            stride=(2, 2),
+            nonlinearity=lasagne.nonlinearities.rectify,
+            W=lasagne.init.HeUniform(),
+            b=lasagne.init.Constant(.1)
+        )
+    
+        l_conv2 = dnn.Conv2DDNNLayer(
+            l_conv1,
+            num_filters=64,
+            filter_size=(3, 3),
+            stride=(2, 2),
+            nonlinearity=lasagne.nonlinearities.rectify,
+            W=lasagne.init.HeUniform(),
+            b=lasagne.init.Constant(.1)
+        )
+    
+        l_conv3 = dnn.Conv2DDNNLayer(
+            l_conv2,
+            num_filters=64,
+            filter_size=(3, 3),
+            stride=(2, 2),
+            nonlinearity=lasagne.nonlinearities.rectify,
+            W=lasagne.init.HeUniform(),
+            b=lasagne.init.Constant(.1)
+        )
+    
+        l_hidden1 = lasagne.layers.DenseLayer(
+            l_conv3,
+            num_units=2048,
+            nonlinearity=lasagne.nonlinearities.rectify,
+            W=lasagne.init.HeUniform(),
+            b=lasagne.init.Constant(.1)
+        )
+    
+        l_out = lasagne.layers.DenseLayer(
+            l_hidden1,
+            num_units=1,
+            nonlinearity=None,
+            W=lasagne.init.HeUniform(),
+            b=lasagne.init.Constant(.1)
+        )
+    
+        return l_out,l_hidden1
+
+    def build_DCNN_deep(input_var = None):
+    
+        from lasagne.layers import dnn
+        # Define the input variable which is 4 frames of IPW fields and 4 frames of 
+        # reflectivity fields
+        print 'OK fellows we are going to give it all we got!!!!'
+        l_in = lasagne.layers.InputLayer(shape=(None, 8, 33, 33),
+                                        input_var=input_var)
+    
+        l_conv1 = dnn.Conv2DDNNLayer(
+            l_in,
+            num_filters=32,
+            filter_size=(3, 3),
+            stride=(1, 1),
+            nonlinearity=lasagne.nonlinearities.rectify,
+            W=lasagne.init.HeUniform(),
+            b=lasagne.init.Constant(.1)
+        )
+    
+        l_conv2 = dnn.Conv2DDNNLayer(
+            l_conv1,
+            num_filters=32,
+            filter_size=(3, 3),
+            stride=(1, 1),
+            nonlinearity=lasagne.nonlinearities.rectify,
+            W=lasagne.init.HeUniform(),
+            b=lasagne.init.Constant(.1)
+        )
+    
+    
+        l_maxpool1 = dnn.Pool2DDNNLayer(
+                l_conv2,
+                pool_size = (3,3),
+                stride = (1,1))
+    
+        l_conv3 = dnn.Conv2DDNNLayer(
+            l_maxpool1,
+            num_filters=64,
+            filter_size=(3, 3),
+            stride=(1, 1),
+            nonlinearity=lasagne.nonlinearities.rectify,
+            W=lasagne.init.HeUniform(),
+            b=lasagne.init.Constant(.1)
+        )
+    
+        l_conv4 = dnn.Conv2DDNNLayer(
+            l_conv3,
+            num_filters=64,
+            filter_size=(3, 3),
+            stride=(1, 1),
+            nonlinearity=lasagne.nonlinearities.rectify,
+            W=lasagne.init.HeUniform(),
+            b=lasagne.init.Constant(.1)
+        )
+    
+        l_maxpool2 = dnn.Pool2DDNNLayer(
+                l_conv4,
+                pool_size = (3,3),
+                stride = (1,1))
+    
+        l_conv5 = dnn.Conv2DDNNLayer(
+            l_maxpool2,
+            num_filters=128,
+            filter_size=(5, 5),
+            stride=(2, 2),
+            nonlinearity=lasagne.nonlinearities.rectify,
+            W=lasagne.init.HeUniform(),
+            b=lasagne.init.Constant(.1)
+        )
+    
+        l_conv6 = dnn.Conv2DDNNLayer(
+            l_conv5,
+            num_filters=256,
+            filter_size=(5, 5),
+            stride=(2, 2),
+            nonlinearity=lasagne.nonlinearities.rectify,
+            W=lasagne.init.HeUniform(),
+            b=lasagne.init.Constant(.1)
+        )
+        
+    
+        l_hidden1 = lasagne.layers.DenseLayer(
+            l_conv6,
+            num_units=4096,
+            nonlinearity=lasagne.nonlinearities.rectify,
+            W=lasagne.init.HeUniform(),
+            b=lasagne.init.Constant(.1)
+        )
+    
+        l_out = lasagne.layers.DenseLayer(
+            l_hidden1,
+            num_units=1,
+            nonlinearity=None,
+            W=lasagne.init.HeUniform(),
+            b=lasagne.init.Constant(.1)
+        )
+    
+        return l_out,l_hidden1
+    
+        # 3 convolutional layers and 1 fully connected layer on GPU
+    def build_DCNN_3_softmax(input_var = None):
+    
+        from lasagne.layers import dnn
+        # Define the input variable which is 4 frames of IPW fields and 4 frames of 
+        # reflectivity fields
+        l_in = lasagne.layers.InputLayer(shape=(None, 8, 33, 33),
+                                        input_var=input_var)
+    
+        l_conv1 = dnn.Conv2DDNNLayer(
+            l_in,
+            num_filters=32,
+            filter_size=(5, 5),
+            stride=(2, 2),
+            nonlinearity=lasagne.nonlinearities.rectify,
+            W=lasagne.init.HeUniform(),
+            b=lasagne.init.Constant(.1)
+        )
+    
+        l_conv2 = dnn.Conv2DDNNLayer(
+            l_conv1,
+            num_filters=64,
+            filter_size=(3, 3),
+            stride=(2, 2),
+            nonlinearity=lasagne.nonlinearities.rectify,
+            W=lasagne.init.HeUniform(),
+            b=lasagne.init.Constant(.1)
+        )
+    
+        l_conv3 = dnn.Conv2DDNNLayer(
+            l_conv2,
+            num_filters=64,
+            filter_size=(3, 3),
+            stride=(2, 2),
+            nonlinearity=lasagne.nonlinearities.rectify,
+            W=lasagne.init.HeUniform(),
+            b=lasagne.init.Constant(.1)
+        )
+    
+        l_hidden1 = lasagne.layers.DenseLayer(
+            l_conv3,
+            num_units=2048,
+            nonlinearity=lasagne.nonlinearities.rectify,
+            W=lasagne.init.HeUniform(),
+            b=lasagne.init.Constant(.1)
+        )
+    
+        l_out = lasagne.layers.DenseLayer(
+            l_hidden1,
+            num_units=1,
+            nonlinearity=None,
+            W=lasagne.init.HeUniform(),
+            b=lasagne.init.Constant(.1)
+        )
+    
+        return l_out,l_hidden1
+
+    
     
     
         
