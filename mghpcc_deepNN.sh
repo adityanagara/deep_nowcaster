@@ -23,6 +23,5 @@ module load python/2.7.9_packages/theano/0.7.0
 
 # our executable 
 pwd
-python code/DCNN_nowcaster.py 1000 1200 gpu3
+python code/DCNN_nowcaster.py 1000 1200 deep
 #python -c "from lasagne.layers import dnn"
-
