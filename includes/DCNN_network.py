@@ -12,7 +12,7 @@ import os
 import theano
 from theano import tensor as T
 
-class DCNN_network(object):
+class DCNN_network:
     
     def __init__(self,input_shape = (None, 8, 33, 33)):
         self.input_shape = input_shape
@@ -23,7 +23,7 @@ class DCNN_network(object):
         print 'We hit the GPU code!'
         # Define the input variable which is 4 frames of IPW fields and 4 frames of 
         # reflectivity fields
-        l_in = lasagne.layers.InputLayer(shape=(None, 8, 33, 33),
+        l_in = lasagne.layers.InputLayer(shape=self.input_shape,
                                         input_var=input_var)
     
         l_conv1 = dnn.Conv2DDNNLayer(
@@ -59,7 +59,7 @@ class DCNN_network(object):
         from lasagne.layers import Conv2DLayer
         # Define the input variable which is 4 frames of IPW fields and 4 frames of 
         # reflectivity fields
-        l_in = lasagne.layers.InputLayer(shape=(None, 8, 33, 33),
+        l_in = lasagne.layers.InputLayer(shape=self.input_shape,
                                         input_var=input_var)
     
         l_conv1 = Conv2DLayer(
@@ -95,7 +95,7 @@ class DCNN_network(object):
         from lasagne.layers import Conv2DLayer
         # Define the input variable which is 4 frames of IPW fields and 4 frames of 
         # reflectivity fields
-        l_in = lasagne.layers.InputLayer(shape=(None, 8, 33, 33),
+        l_in = lasagne.layers.InputLayer(shape=self.input_shape,
                                         input_var=input_var)
     
         l_conv1 = Conv2DLayer(
@@ -141,7 +141,7 @@ class DCNN_network(object):
         from lasagne.layers import dnn
         # Define the input variable which is 4 frames of IPW fields and 4 frames of 
         # reflectivity fields
-        l_in = lasagne.layers.InputLayer(shape=(None, 8, 33, 33),
+        l_in = lasagne.layers.InputLayer(shape=self.input_shape,
                                         input_var=input_var)
     
         l_conv1 = dnn.Conv2DDNNLayer(
@@ -183,12 +183,12 @@ class DCNN_network(object):
         return l_out,l_hidden1
     
     # 3 convolutional layers and 1 fully connected layer on GPU
-    def build_DCNN_3(input_var = None):
+    def build_DCNN_3(self,input_var = None):
     
         from lasagne.layers import dnn
         # Define the input variable which is 4 frames of IPW fields and 4 frames of 
         # reflectivity fields
-        l_in = lasagne.layers.InputLayer(shape=(None, 8, 33, 33),
+        l_in = lasagne.layers.InputLayer(shape=self.input_shape,
                                         input_var=input_var)
     
         l_conv1 = dnn.Conv2DDNNLayer(
@@ -239,13 +239,13 @@ class DCNN_network(object):
     
         return l_out,l_hidden1
 
-    def build_DCNN_deep(input_var = None):
+    def build_DCNN_deep(self,input_var = None):
     
         from lasagne.layers import dnn
         # Define the input variable which is 4 frames of IPW fields and 4 frames of 
         # reflectivity fields
         print 'OK fellows we are going to give it all we got!!!!'
-        l_in = lasagne.layers.InputLayer(shape=(None, 8, 33, 33),
+        l_in = lasagne.layers.InputLayer(shape=self.input_shape,
                                         input_var=input_var)
     
         l_conv1 = dnn.Conv2DDNNLayer(
@@ -339,12 +339,12 @@ class DCNN_network(object):
         return l_out,l_hidden1
     
         # 3 convolutional layers and 1 fully connected layer on GPU
-    def build_DCNN_3_softmax(input_var = None):
+    def build_DCNN_3_softmax(self,input_var = None):
     
         from lasagne.layers import dnn
         # Define the input variable which is 4 frames of IPW fields and 4 frames of 
         # reflectivity fields
-        l_in = lasagne.layers.InputLayer(shape=(None, 8, 33, 33),
+        l_in = lasagne.layers.InputLayer(shape=self.input_shape,
                                         input_var=input_var)
     
         l_conv1 = dnn.Conv2DDNNLayer(
@@ -392,8 +392,13 @@ class DCNN_network(object):
             W=lasagne.init.HeUniform(),
             b=lasagne.init.Constant(.1)
         )
+        
+        network = lasagne.layers.DenseLayer(
+            l_out,
+            num_units=6,
+            nonlinearity=lasagne.nonlinearities.softmax)
     
-        return l_out,l_hidden1
+        return network,l_hidden1
 
     
     

@@ -8,8 +8,8 @@ Created on Tue Oct  6 09:23:41 2015
 import os
 import numpy as np
 import random
+import getpass
 
-Basefile = '/Users/adityanagarajan/projects/nowcaster/data/dataset/'
 '''
 This package deals with building data sets for training a machine learning
 based nowcasting system. This means we can build 3 frames of IPW and 4 frames
@@ -20,13 +20,19 @@ class dataset(object):
     """This class builds the data set given the pixel points
     """
     def __init__(self,Threshold = 24.0,num_points = 1500):
-        self.TrainTestdir = '/Users/adityanagarajan/projects/nowcaster/data/dataset/'
+        self.TrainTestdir = self.get_data_path()
         self.IPWfiles, self.Radarfiles = self._sort_IPW_refl_files()
         self.Threshold = Threshold
         self.num_points = num_points 
         self.sorted_days = self.club_days()
         self.days_in_sorted = self.sorted_days.keys()
-        
+    
+    def get_data_path(self):
+        user = getpass.getuser()
+        if user == 'adityanagara':
+            return '/Users/adityanagarajan/projects/nowcaster/data/dataset/'
+        else:
+            return '/home/an67a/deep_nowcaster/data/dataset/'
     def _sort_IPW_refl_files(self):
         
         files = os.listdir(self.TrainTestdir)
@@ -104,7 +110,7 @@ class dataset(object):
         matrix_ctr = 0
     
         for i_file,r_file in zip(temp_ipw_file_list,temp_radar_file_list):
-            RadarMatrix = np.load(Basefile + r_file).astype('float32')
+            RadarMatrix = np.load(self.TrainTestdir + r_file).astype('float32')
     
             RadarMatrix[np.isnan(RadarMatrix)] = 0.0
             RadarMatrixFeature = RadarMatrix.copy()
@@ -132,7 +138,7 @@ class dataset(object):
             pointXY = RadarMatrix[y_,x_]
             out_matrixIPW[matrix_ctr,-1] = pointXY
             # Current field time stem in is the first 1089 features
-            IPWMatrix = np.load(Basefile + i_file).astype('float32')
+            IPWMatrix = np.load(self.TrainTestdir + i_file).astype('float32')
             
             out_matrixIPW[matrix_ctr,:1089] = IPWMatrix[j_start:j_end,i_start:i_end].reshape(-1,)
             out_matrixRadar[matrix_ctr,:1089] = RadarMatrixFeature[j_start:j_end,i_start:i_end].reshape(-1,)
@@ -275,39 +281,6 @@ class dataset(object):
         X = np.concatenate((IPWFeatures,ReflFeatures),axis=1)
         # return data sets
         return X,Y
-        
-#def load_data_set(set_no = 3):
-#    # Temporarely route the data from summer
-#    file_list = os.listdir('data/TrainTest/RandomPoints/')
-#    file_list = filter(lambda x: x[:3] == 'IPW',file_list)
-#    random_points_file = file('data/TrainTest/RandomPoints/' + file_list[set_no],'rb')
-#    data_set = cPickle.load(random_points_file)
-#    random_points_file.close()
-#    return data_set
-    
-#def build_data_set(set_no):
-#    # Load entire 1500 points
-#    data = load_data_set(set_no = set_no)
-#    
-#    IPWFeatures = np.concatenate(map(lambda x: x[0].astype('float32'),data))
-#    
-#    Y_train = IPWFeatures[:,-1].reshape(IPWFeatures.shape[0],1)
-#    
-#    IPWFeatures = IPWFeatures[:,:-1].reshape(IPWFeatures.shape[0],6,33,33)
-#    
-#    IPWFeatures = IPWFeatures[:,2:,:,:]
-#    
-#    ReflFeatures = np.concatenate(map(lambda x: x[1].astype('float32'),data))
-#    
-#    ReflFeatures = ReflFeatures.reshape(IPWFeatures.shape[0],6,33,33)
-#    
-#    ReflFeatures = ReflFeatures[:,2:,:,:]
-#    
-#    X_train = np.concatenate((IPWFeatures,ReflFeatures),axis=1)
-#    
-#    print X_train.shape,Y_train.shape
-#    
-#    return X_train,Y_train
         
 
 

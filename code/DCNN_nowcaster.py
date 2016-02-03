@@ -24,44 +24,9 @@ import csv
 import cPickle
 import sys
 import os
+import DCNN_network
 
 sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
-def build_DCNN(input_var = None):
-    
-    from lasagne.layers import dnn
-    print 'We hit the GPU code!'
-    # Define the input variable which is 4 frames of IPW fields and 4 frames of 
-    # reflectivity fields
-    l_in = lasagne.layers.InputLayer(shape=(None, 8, 33, 33),
-                                        input_var=input_var)
-    
-    l_conv1 = dnn.Conv2DDNNLayer(
-            l_in,
-            num_filters=32,
-            filter_size=(11, 11),
-            stride=(2, 2),
-            nonlinearity=lasagne.nonlinearities.rectify,
-            W=lasagne.init.HeUniform(),
-            b=lasagne.init.Constant(.1)
-        )
-    
-    l_hidden1 = lasagne.layers.DenseLayer(
-            l_conv1,
-            num_units=256,
-            nonlinearity=lasagne.nonlinearities.rectify,
-            W=lasagne.init.HeUniform(),
-            b=lasagne.init.Constant(.1)
-        )
-    
-    l_out = lasagne.layers.DenseLayer(
-            l_hidden1,
-            num_units=1,
-            nonlinearity=None,
-            W=lasagne.init.HeUniform(),
-            b=lasagne.init.Constant(.1)
-        )
-    
-    return l_out,l_hidden1
 
 def save_file(file_name):
     file_path = 'output/' + file_name
@@ -76,345 +41,6 @@ def append_file(file_name,val_1,val_2,val_3):
         csvwriter.writerow([val_1,val_2,val_3])
 
     
-def build_CNN(input_var = None):
-    
-    from lasagne.layers import Conv2DLayer
-    # Define the input variable which is 4 frames of IPW fields and 4 frames of 
-    # reflectivity fields
-    l_in = lasagne.layers.InputLayer(shape=(None, 8, 33, 33),
-                                        input_var=input_var)
-    
-    l_conv1 = Conv2DLayer(
-            l_in,
-            num_filters=32,
-            filter_size=(11, 11),
-            stride=(2, 2),
-            nonlinearity=lasagne.nonlinearities.rectify,
-            W=lasagne.init.HeUniform(),
-            b=lasagne.init.Constant(.1)
-        )
-    
-    l_hidden1 = lasagne.layers.DenseLayer(
-            l_conv1,
-            num_units=256,
-            nonlinearity=lasagne.nonlinearities.rectify,
-            W=lasagne.init.HeUniform(),
-            b=lasagne.init.Constant(.1)
-        )
-    
-    l_out = lasagne.layers.DenseLayer(
-            l_hidden1,
-            num_units=1,
-            nonlinearity=None,
-            W=lasagne.init.HeUniform(),
-            b=lasagne.init.Constant(.1)
-        )
-    
-    return l_out,l_hidden1
-
-def build_CNN_2(input_var = None):
-    
-    from lasagne.layers import Conv2DLayer
-    # Define the input variable which is 4 frames of IPW fields and 4 frames of 
-    # reflectivity fields
-    l_in = lasagne.layers.InputLayer(shape=(None, 8, 33, 33),
-                                        input_var=input_var)
-    
-    l_conv1 = Conv2DLayer(
-            l_in,
-            num_filters=32,
-            filter_size=(11, 11),
-            stride=(2, 2),
-            nonlinearity=lasagne.nonlinearities.rectify,
-            W=lasagne.init.HeUniform(),
-            b=lasagne.init.Constant(.1)
-        )
-    
-    l_conv2 = Conv2DLayer(
-            l_conv1,
-            num_filters=48,
-            filter_size=(4, 4),
-            stride=(2, 2),
-            nonlinearity=lasagne.nonlinearities.rectify,
-            W=lasagne.init.HeUniform(),
-            b=lasagne.init.Constant(.1)
-        )
-    
-    l_hidden1 = lasagne.layers.DenseLayer(
-            l_conv2,
-            num_units=256,
-            nonlinearity=lasagne.nonlinearities.rectify,
-            W=lasagne.init.HeUniform(),
-            b=lasagne.init.Constant(.1)
-        )
-    
-    l_out = lasagne.layers.DenseLayer(
-            l_hidden1,
-            num_units=1,
-            nonlinearity=None,
-            W=lasagne.init.HeUniform(),
-            b=lasagne.init.Constant(.1)
-        )
-    
-    return l_out,l_hidden1
-# 3 convolutional layers and 1 fully connected layer
-def build_CNN_3(input_var = None):
-    
-    from lasagne.layers import Conv2DLayer
-    # Define the input variable which is 4 frames of IPW fields and 4 frames of 
-    # reflectivity fields
-    l_in = lasagne.layers.InputLayer(shape=(None, 8, 33, 33),
-                                        input_var=input_var)
-    
-    l_conv1 = Conv2DLayer(
-            l_in,
-            num_filters=32,
-            filter_size=(5, 5),
-            stride=(2, 2),
-            nonlinearity=lasagne.nonlinearities.rectify,
-            W=lasagne.init.HeUniform(),
-            b=lasagne.init.Constant(.1)
-        )
-    
-    l_conv2 = Conv2DLayer(
-            l_conv1,
-            num_filters=64,
-            filter_size=(3, 3),
-            stride=(2, 2),
-            nonlinearity=lasagne.nonlinearities.rectify,
-            W=lasagne.init.HeUniform(),
-            b=lasagne.init.Constant(.1)
-        )
-    
-    l_conv3 = Conv2DLayer(
-            l_conv2,
-            num_filters=64,
-            filter_size=(3, 3),
-            stride=(2, 2),
-            nonlinearity=lasagne.nonlinearities.rectify,
-            W=lasagne.init.HeUniform(),
-            b=lasagne.init.Constant(.1)
-        )
-    
-    l_hidden1 = lasagne.layers.DenseLayer(
-            l_conv3,
-            num_units=2048,
-            nonlinearity=lasagne.nonlinearities.rectify,
-            W=lasagne.init.HeUniform(),
-            b=lasagne.init.Constant(.1)
-        )
-    
-    l_out = lasagne.layers.DenseLayer(
-            l_hidden1,
-            num_units=1,
-            nonlinearity=None,
-            W=lasagne.init.HeUniform(),
-            b=lasagne.init.Constant(.1)
-        )
-    
-    return l_out,l_hidden1
-# 3 convolutional layers and 1 fully connected layer on GPU
-def build_DCNN_3(input_var = None):
-    
-    from lasagne.layers import dnn
-    # Define the input variable which is 4 frames of IPW fields and 4 frames of 
-    # reflectivity fields
-    l_in = lasagne.layers.InputLayer(shape=(None, 8, 33, 33),
-                                        input_var=input_var)
-    
-    l_conv1 = dnn.Conv2DDNNLayer(
-            l_in,
-            num_filters=32,
-            filter_size=(5, 5),
-            stride=(2, 2),
-            nonlinearity=lasagne.nonlinearities.rectify,
-            W=lasagne.init.HeUniform(),
-            b=lasagne.init.Constant(.1)
-        )
-    
-    l_conv2 = dnn.Conv2DDNNLayer(
-            l_conv1,
-            num_filters=64,
-            filter_size=(3, 3),
-            stride=(2, 2),
-            nonlinearity=lasagne.nonlinearities.rectify,
-            W=lasagne.init.HeUniform(),
-            b=lasagne.init.Constant(.1)
-        )
-    
-    l_conv3 = dnn.Conv2DDNNLayer(
-            l_conv2,
-            num_filters=64,
-            filter_size=(3, 3),
-            stride=(2, 2),
-            nonlinearity=lasagne.nonlinearities.rectify,
-            W=lasagne.init.HeUniform(),
-            b=lasagne.init.Constant(.1)
-        )
-    
-    l_hidden1 = lasagne.layers.DenseLayer(
-            l_conv3,
-            num_units=2048,
-            nonlinearity=lasagne.nonlinearities.rectify,
-            W=lasagne.init.HeUniform(),
-            b=lasagne.init.Constant(.1)
-        )
-    
-    l_out = lasagne.layers.DenseLayer(
-            l_hidden1,
-            num_units=1,
-            nonlinearity=None,
-            W=lasagne.init.HeUniform(),
-            b=lasagne.init.Constant(.1)
-        )
-    
-    return l_out,l_hidden1
-
-# 3 convolutional layers and 1 fully connected layer on GPU
-def build_DCNN_deep(input_var = None):
-    
-    from lasagne.layers import dnn
-    # Define the input variable which is 4 frames of IPW fields and 4 frames of 
-    # reflectivity fields
-    print 'OK fellows we are going to give it all we got!!!!'
-    l_in = lasagne.layers.InputLayer(shape=(None, 8, 33, 33),
-                                        input_var=input_var)
-    
-    l_conv1 = dnn.Conv2DDNNLayer(
-            l_in,
-            num_filters=32,
-            filter_size=(3, 3),
-            stride=(1, 1),
-            nonlinearity=lasagne.nonlinearities.rectify,
-            W=lasagne.init.HeUniform(),
-            b=lasagne.init.Constant(.1)
-        )
-    
-    l_conv2 = dnn.Conv2DDNNLayer(
-            l_conv1,
-            num_filters=32,
-            filter_size=(3, 3),
-            stride=(1, 1),
-            nonlinearity=lasagne.nonlinearities.rectify,
-            W=lasagne.init.HeUniform(),
-            b=lasagne.init.Constant(.1)
-        )
-    
-    
-    l_maxpool1 = dnn.Pool2DDNNLayer(
-                l_conv2,
-                pool_size = (3,3),
-                stride = (1,1))
-    
-    l_conv3 = dnn.Conv2DDNNLayer(
-            l_maxpool1,
-            num_filters=64,
-            filter_size=(3, 3),
-            stride=(1, 1),
-            nonlinearity=lasagne.nonlinearities.rectify,
-            W=lasagne.init.HeUniform(),
-            b=lasagne.init.Constant(.1)
-        )
-    
-    l_conv4 = dnn.Conv2DDNNLayer(
-            l_conv3,
-            num_filters=64,
-            filter_size=(3, 3),
-            stride=(1, 1),
-            nonlinearity=lasagne.nonlinearities.rectify,
-            W=lasagne.init.HeUniform(),
-            b=lasagne.init.Constant(.1)
-        )
-    
-    l_maxpool2 = dnn.Pool2DDNNLayer(
-                l_conv4,
-                pool_size = (3,3),
-                stride = (1,1))
-    
-    l_conv5 = dnn.Conv2DDNNLayer(
-            l_maxpool2,
-            num_filters=128,
-            filter_size=(5, 5),
-            stride=(2, 2),
-            nonlinearity=lasagne.nonlinearities.rectify,
-            W=lasagne.init.HeUniform(),
-            b=lasagne.init.Constant(.1)
-        )
-    
-    l_conv6 = dnn.Conv2DDNNLayer(
-            l_conv5,
-            num_filters=256,
-            filter_size=(5, 5),
-            stride=(2, 2),
-            nonlinearity=lasagne.nonlinearities.rectify,
-            W=lasagne.init.HeUniform(),
-            b=lasagne.init.Constant(.1)
-        )
-        
-    
-    l_hidden1 = lasagne.layers.DenseLayer(
-            l_conv6,
-            num_units=4096,
-            nonlinearity=lasagne.nonlinearities.rectify,
-            W=lasagne.init.HeUniform(),
-            b=lasagne.init.Constant(.1)
-        )
-    
-    l_out = lasagne.layers.DenseLayer(
-            l_hidden1,
-            num_units=1,
-            nonlinearity=None,
-            W=lasagne.init.HeUniform(),
-            b=lasagne.init.Constant(.1)
-        )
-    
-    return l_out,l_hidden1
-    
-def build_DCNN_2(input_var = None):
-    
-    from lasagne.layers import dnn
-    # Define the input variable which is 4 frames of IPW fields and 4 frames of 
-    # reflectivity fields
-    l_in = lasagne.layers.InputLayer(shape=(None, 8, 33, 33),
-                                        input_var=input_var)
-    
-    l_conv1 = dnn.Conv2DDNNLayer(
-            l_in,
-            num_filters=32,
-            filter_size=(11, 11),
-            stride=(2, 2),
-            nonlinearity=lasagne.nonlinearities.rectify,
-            W=lasagne.init.HeUniform(),
-            b=lasagne.init.Constant(.1)
-        )
-    
-    l_conv2 = dnn.Conv2DDNNLayer(
-            l_conv1,
-            num_filters=48,
-            filter_size=(4, 4),
-            stride=(2, 2),
-            nonlinearity=lasagne.nonlinearities.rectify,
-            W=lasagne.init.HeUniform(),
-            b=lasagne.init.Constant(.1)
-        )
-    
-    l_hidden1 = lasagne.layers.DenseLayer(
-            l_conv2,
-            num_units=256,
-            nonlinearity=lasagne.nonlinearities.rectify,
-            W=lasagne.init.HeUniform(),
-            b=lasagne.init.Constant(.1)
-        )
-    
-    l_out = lasagne.layers.DenseLayer(
-            l_hidden1,
-            num_units=1,
-            nonlinearity=None,
-            W=lasagne.init.HeUniform(),
-            b=lasagne.init.Constant(.1)
-        )
-    
-    return l_out,l_hidden1
 
 def iterate_minibatches(inputs, targets, batchsize, shuffle=False):
     assert len(inputs) == len(targets)
@@ -438,43 +64,54 @@ def main(num_epochs = 100,num_points = 1200,compute_flag='cpu'):
     print 'Saving file to: %s' % results_file_name
     print 'Number of points: %d ' % num_points
     print 'Compute Flag: %s ' % compute_flag
-    save_file(results_file_name)    
+    save_file(results_file_name)  
+    Deep_learner = DCNN_network.DCNN_network()
     # Define the input tensor
     input_var = T.tensor4('inputs')
     # Define the output tensor (in this case it is a real value or reflectivity)
-    output_var = T.fcol('targets')
+    if compute_flag == 'gpu3_softmax':
+        output_var = T.ivector('targets')
+    else:
+        output_var = T.fcol('targets')
     # User input to decide which experiment to run, cpu runs were performed
     # to check if the network was working correctly
     if compute_flag =='cpu': 
-        network,l_hidden1 = build_CNN(input_var)
+        network,l_hidden1 = Deep_learner.build_CNN(input_var)
     elif compute_flag == 'cpu2':
-        network,l_hidden1 = build_CNN_2(input_var)
+        network,l_hidden1 = Deep_learner.build_CNN_2(input_var)
     elif compute_flag == 'cpu3':
-        network,l_hidden1 = build_CNN_3(input_var)
+        network,l_hidden1 = Deep_learner.build_CNN_3(input_var)
     elif compute_flag == 'gpu2':
         print('gpu2 experiment')
-        network,l_hidden1 = build_DCNN_2(input_var)
+        network,l_hidden1 = Deep_learner.build_DCNN_2(input_var)
     elif compute_flag == 'gpu3':
         print('gpu3 experiment')
-        network,l_hidden1 = build_DCNN_3(input_var)
+        network,l_hidden1 = Deep_learner.build_DCNN_3(input_var)
     elif compute_flag == 'deep':
-        network,l_hidden1 = build_DCNN_deep(input_var)
+        network,l_hidden1 = Deep_learner.build_DCNN_deep(input_var)
+    elif compute_flag == 'gpu3_softmax':
+        network,l_hidden1 = Deep_learner.build_DCNN_deep(input_var)
     else:
-        network,l_hidden1 = build_DCNN(input_var)
+        network,l_hidden1 = Deep_learner.build_DCNN(input_var)
     
     
     train_prediction = lasagne.layers.get_output(network)
     test_prediction = lasagne.layers.get_output(network)
-    # Define the mean square error objective function
-    loss = T.mean(lasagne.objectives.squared_error(train_prediction,output_var))
+    if compute_flag == 'gpu3_softmax':
+        loss = lasagne.objectives.categorical_crossentropy(train_prediction, output_var)
+        loss = loss.mean()
+    else:
     
-    test_loss = T.mean(lasagne.objectives.squared_error(test_prediction,output_var))
-    # Add a l1 regulerization on the fully connected dense layer
-    l1_penalty = regularize_layer_params(l_hidden1, l1)
+        # Define the mean square error objective function
+        loss = T.mean(lasagne.objectives.squared_error(train_prediction,output_var))
     
-    loss = loss + l1_penalty
+        test_loss = T.mean(lasagne.objectives.squared_error(test_prediction,output_var))
+        # Add a l1 regulerization on the fully connected dense layer
+        l1_penalty = regularize_layer_params(l_hidden1, l1)
     
-    test_loss = loss + l1_penalty
+        loss = loss + l1_penalty
+    
+        test_loss = loss + l1_penalty
     
     params = lasagne.layers.get_all_params(network, trainable=True)
     
@@ -483,6 +120,9 @@ def main(num_epochs = 100,num_points = 1200,compute_flag='cpu'):
             
     # Define theano function which generates and compiles C code for the optimization problem
     train_fn = theano.function([input_var, output_var], loss, updates=updates)
+    
+    train_acc = T.mean(T.eq(T.argmax(test_prediction, axis=1), output_var),
+                      dtype=theano.config.floatX)
     
     test_fn = theano.function([input_var, output_var],test_loss, updates=updates)
     
@@ -498,14 +138,14 @@ def main(num_epochs = 100,num_points = 1200,compute_flag='cpu'):
     # Pass through all points in validation set
     print training_set_list
     for epoch in range(num_epochs):
-	print('Epoch number : %d '%epoch)
+        print('Epoch number : %d '%epoch)
         train_err = 0
         train_batches = 0
         val_batches = 0
         val_err = 0
         start_time = time.time()
         for file_name in training_set_list:
-	    print file_name
+            print file_name
             temp_file = file(base_path + file_name,'rb')
             X_train,Y_train = cPickle.load(temp_file)
             temp_file.close()
@@ -513,16 +153,16 @@ def main(num_epochs = 100,num_points = 1200,compute_flag='cpu'):
                 inputs, targets = batch
                 train_err += train_fn(inputs, targets)
                 train_batches += 1
-        for val_file in validation_set_list:
-	    print val_file
-            val_temp_file = file(base_path + val_file)
-            X_val,Y_val = cPickle.load(val_temp_file)
-            val_temp_file.close()
-            for batch in iterate_minibatches(X_val, Y_val, 1059, shuffle=False):
-                inputs, targets = batch
-                err = test_fn(inputs, targets)
-                val_err += err
-                val_batches += 1
+#        for val_file in validation_set_list:
+#	    print val_file
+#            val_temp_file = file(base_path + val_file)
+#            X_val,Y_val = cPickle.load(val_temp_file)
+#            val_temp_file.close()
+#            for batch in iterate_minibatches(X_val, Y_val, 1059, shuffle=False):
+#                inputs, targets = batch
+#                err = test_fn(inputs, targets)
+#                val_err += err
+#                val_batches += 1
         print("Epoch {} of {} took {:.3f}s".format(
             epoch + 1, num_epochs, time.time() - start_time))
         print("  training loss:\t\t{:.6f}".format(train_err / train_batches))
