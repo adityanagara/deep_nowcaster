@@ -8,10 +8,12 @@ Created on Tue Jan 26 18:19:51 2016
 import BuildDataSet
 import cPickle
 import os
+import sys
 
 data_builder = BuildDataSet.dataset(Threshold = 'bin')
 PixelPoints = data_builder.sample_random_pixels()
 
+sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
 
 def build_points_fields():
     num_points = 1200
@@ -30,6 +32,21 @@ def build_points_fields():
 def load_points_fields():
     base_path = 'data/dataset2/'
     file_list = os.listdir(base_path)
-    file_list = filter(lambda x: x[-3:] == '.pkl',file_list)
+    file_list = filter(lambda x: x[-4:] == '.pkl',file_list)
+    massive_data = []
+    print(file_list)
+    for f in file_list:
+        print f
+        open_file = open(base_path + f,'rb')
+        load_file = cPickle.load(open_file)
+        open_file.close()
+        massive_data.append(load_file)
+#        print('Done loading file %s '%f)
+    for data in massive_data:
+        print(data[0].shape,data[1].shape)
+    print('Successfully Loaded 50gigs of data!! on da cluster')
+    
+load_points_fields()
+
     
     

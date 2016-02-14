@@ -90,7 +90,7 @@ def main(num_epochs = 100,num_points = 1200,compute_flag='cpu'):
     elif compute_flag == 'deep':
         network,l_hidden1 = Deep_learner.build_DCNN_deep(input_var)
     elif compute_flag == 'gpu3_softmax':
-        network,l_hidden1 = Deep_learner.build_DCNN_deep(input_var)
+        network,l_hidden1 = Deep_learner.build_DCNN_3_softmax(input_var)
     else:
         network,l_hidden1 = Deep_learner.build_DCNN(input_var)
     
@@ -117,14 +117,15 @@ def main(num_epochs = 100,num_points = 1200,compute_flag='cpu'):
     
     updates = lasagne.updates.nesterov_momentum(
             loss, params, learning_rate=0.0000001, momentum=0.9)
-            
-    # Define theano function which generates and compiles C code for the optimization problem
-    train_fn = theano.function([input_var, output_var], loss, updates=updates)
     
     train_acc = T.mean(T.eq(T.argmax(test_prediction, axis=1), output_var),
-                      dtype=theano.config.floatX)
+                      dtype=theano.config.floatX) 
+    # Define theano function which generates and compiles C code for the optimization problem
+    train_fn = theano.function([input_var, output_var], [loss,train_acc], updates=updates)
     
-    test_fn = theano.function([input_var, output_var],test_loss, updates=updates)
+
+    
+#    test_fn = theano.function([input_var, output_var],test_loss, updates=updates)
     
     base_path = '/home/an67a/deep_nowcaster/data/dataset2/'
     training_set_list = os.listdir(base_path)
@@ -132,42 +133,43 @@ def main(num_epochs = 100,num_points = 1200,compute_flag='cpu'):
     validation_set_list = os.listdir(base_path)
     validation_set_list = filter(lambda x: x[-4:] == '.pkl' and 'val' in x,validation_set_list)
     experiment_start_time = time.time()
-    # Start training
-    # Load each point from disc to avoid memory error for > 50 points
-    # Pass through all points in the training data
-    # Pass through all points in validation set
-    print training_set_list
+    # Load Data Set
+    DataSet = []
+    print('Loading data set...')
+    for file_name in training_set_list[:3]:
+        print file_name
+        temp_file = file(base_path + file_name,'rb')
+        X_train,Y_train = cPickle.load(temp_file)
+        temp_file.close()
+        Y_train = Y_train.reshape(-1,).astype('uint8')
+        DataSet.append((X_train,Y_train))
+    
+    print('Start training...')
     for epoch in range(num_epochs):
         print('Epoch number : %d '%epoch)
         train_err = 0
         train_batches = 0
-        val_batches = 0
-        val_err = 0
+        train_acc = 0
         start_time = time.time()
-        for file_name in training_set_list:
-            print file_name
-            temp_file = file(base_path + file_name,'rb')
-            X_train,Y_train = cPickle.load(temp_file)
-            temp_file.close()
-            for batch in iterate_minibatches(X_train, Y_train, 1059, shuffle=False):
+        for data in DataSet:
+#        for file_name in training_set_list:
+#            print file_name
+#            temp_file = file(base_path + file_name,'rb')
+#            X_train,Y_train = cPickle.load(temp_file)
+#            Y_train = Y_train.astype('uint8')
+#            temp_file.close()
+            for batch in iterate_minibatches(data[0], data[1], 1059, shuffle=False):
                 inputs, targets = batch
-                train_err += train_fn(inputs, targets)
+                err,acc = train_fn(inputs, targets)
+                train_err += err
+                train_acc += acc
                 train_batches += 1
-#        for val_file in validation_set_list:
-#	    print val_file
-#            val_temp_file = file(base_path + val_file)
-#            X_val,Y_val = cPickle.load(val_temp_file)
-#            val_temp_file.close()
-#            for batch in iterate_minibatches(X_val, Y_val, 1059, shuffle=False):
-#                inputs, targets = batch
-#                err = test_fn(inputs, targets)
-#                val_err += err
-#                val_batches += 1
         print("Epoch {} of {} took {:.3f}s".format(
             epoch + 1, num_epochs, time.time() - start_time))
         print("  training loss:\t\t{:.6f}".format(train_err / train_batches))
-        print("  validation loss:\t\t{:.6f}".format(val_err / val_batches))
-        append_file(results_file_name,epoch + 1,round(train_err / train_batches,2),round(val_err / val_batches,2))
+        print("  validation accuracy:\t\t{:.2f} %".format(
+            train_acc / train_batches * 100))
+        append_file(results_file_name,epoch + 1,round(train_err / train_batches,2),round((train_acc / train_batches) * 100,2))
         
         # Dump the network file every 100 epochs
         if (epoch + 1) % 100 == 0:

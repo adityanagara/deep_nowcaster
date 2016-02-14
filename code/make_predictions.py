@@ -13,9 +13,11 @@ from theano import tensor as T
 import lasagne
 import cPickle
 import theano
+import sys
 
 # Load the parameters of a trained neural network
-network_file = open('output/out_net.pkl','rb')
+file_name = 'CPU_network_1000_1200_gpu3_1000.pkl' #sys.argv[1]
+network_file = open('output/' + file_name,'rb')
 params = cPickle.load(network_file)
 network_file.close()
 
@@ -26,7 +28,7 @@ input_var = T.tensor4('inputs')
 neural_nets = DCNN_network.DCNN_network()
 
 # Build the deep neural net (see the package in includes/)
-network = neural_nets.build_CNN_2(input_var)
+network = neural_nets.build_CNN_3_softmax(input_var)
 lasagne.layers.set_all_param_values(network, params)
 
 # Build theano function which inturn generates and compiles C code to run the network
@@ -64,8 +66,6 @@ print PixelPoints.shape
 
 real_predictions = np.zeros((num_points,91,2))
 
-
-
 pt_ctr = 0
 
 for x_,y_ in zip(PixelPoints[:,0],PixelPoints[:,1]):
@@ -75,15 +75,13 @@ for x_,y_ in zip(PixelPoints[:,0],PixelPoints[:,1]):
     X_test,Y_test = data_builder.arrange_frames_single(test_set) 
     Y_pred = predict_function(X_test)
     real_predictions[pt_ctr,:,0] = Y_test.reshape(91,)
-    
     real_predictions[pt_ctr,:,1] = Y_pred[0].reshape(91,)
     pt_ctr+=1
-
 #np.save('test_predictions.npy',real_predictions)
 
 
 
-
+np.argmax()
 
     
 

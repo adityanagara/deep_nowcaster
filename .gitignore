@@ -6,3 +6,4 @@ output/
 includes/*.pyc
 .DS_Store?
 logs/
+*.apr

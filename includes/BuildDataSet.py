@@ -29,7 +29,7 @@ class dataset(object):
     
     def get_data_path(self):
         user = getpass.getuser()
-        if user == 'adityanagara':
+        if user == 'adityanagarajan':
             return '/Users/adityanagarajan/projects/nowcaster/data/dataset/'
         else:
             return '/home/an67a/deep_nowcaster/data/dataset/'
@@ -122,7 +122,7 @@ class dataset(object):
                 RadarMatrix[RadarMatrix >= Threshold] = 1.0
             
             elif Threshold == 'bin':
-                
+                print('Bin them reflectivity')
                 RadarMatrix[RadarMatrix < 10.0] = 0
                 
                 RadarMatrix[np.logical_and(RadarMatrix >= 10.0,RadarMatrix < 20.0)] = 1
