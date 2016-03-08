@@ -16,7 +16,6 @@ import math
 import sys
 
 
-
 def date2doy(yr,mn,day):
     return datetime.datetime(yr, mn, day).timetuple().tm_yday
 
@@ -179,11 +178,11 @@ def parse_file_and_dump(fname,year):
         wmo_data = filter(lambda x: x[0] == mydict[i],all_sites)        
         makeMetRINEX_file(i,file_name,wmo_data,year)
 
-#year = int(sys.argv[1])
-year = 2015
+year = int(sys.argv[1])
+#year = 2015
 # This function generates the file names for an entire year
 def gen_wmo_file_list(year):
-    days_yr = [str(x).zfill(3) for x in range(1,366)]
+    days_yr = [str(x).zfill(3) for x in range(121,123)]
     FileNameList = [str(doy2date(year,int(x)).tm_year) + str(doy2date(year,int(x)).tm_mon).zfill(2) + str(doy2date(year,int(x)).tm_mday).zfill(2) for x in days_yr]
     FileNameList = [x + '{}'.format(str(y).zfill(2)) + '_sao.wmo' for x in FileNameList for y in range(24)]
     return FileNameList

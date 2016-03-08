@@ -11,12 +11,14 @@ import os
 import numpy as np
 from matplotlib import pyplot as plt
 import re
-
+import matplotlib.cm as cm
 
 class BuildNowcaster():
     def __init__(self):
         self.base_dir = 'data/dataset/'
         self.domain_points = (range(17,83),range(17,83))
+        self.reflectivity_scale = np.linspace(0.,90.,256)
+        self.ipw_scale = np.linspace(-5.,5.,256)
         
     def sort_filter_files(self,PixelX,PixelY,doy_set):
         file_list = os.listdir(self.base_dir)
@@ -37,7 +39,6 @@ class BuildNowcaster():
 
         radar_files = filter(lambda x: x[:5] == 'Radar',domain_list)
     
-
         ipw_files = filter(lambda x: x[-7:-4] == doy_set,ipw_files)
 
         radar_files = filter(lambda x: x[-7:-4] == doy_set,radar_files)
@@ -45,7 +46,7 @@ class BuildNowcaster():
         return ipw_files,radar_files
     
     def plot_domain(self,PixelPoints,marker = 'r*'):
-        
+        PixelPoints = PixelPoints.reshape(-1,2)
         gridX = np.arange(-150.0,151.0,300.0/(100-1))
         gridY = np.arange(-150.0,151.0,300.0/(100-1))
         # Loop through each pair to plot on the grod
@@ -60,6 +61,68 @@ class BuildNowcaster():
 
         plt.ylim((-150.0,150.0))
         plt.grid()
+    
+    def plot_fields_side(self,ipw_file,refl_file,PixelPoints):
+        PixelPoints = PixelPoints.reshape(-1,2)
+        m = 100
+        gridIPW = np.load(ipw_file)
+        gridZ = np.load(refl_file)
+        gridX = np.arange(-150.0,151.0,300.0/(m-1))
+        gridY = np.arange(-150.0,151.0,300.0/(m-1))
+#        gridZ[gridZ < 20.0] = np.nan
+        gridZ = np.ma.array(gridZ, mask=np.isnan(gridZ))
+        plt.figure()
+        plt.subplot(1,2,1)
+        plt.pcolor(gridX,gridY,gridZ,cmap='jet', vmin=0, vmax=60)
+        for p in PixelPoints:
+            plt.plot(gridX[p[0]],gridY[p[1]],'r*')
+        plt.grid()
+        plt.xlim((-150.0,150.0))
+        plt.ylim((-150.0,150.0))
+        plt.subplot(1,2,2)
+        plt.pcolor(gridX,gridY,gridIPW,cmap='gist_ncar', vmin=-3.0, vmax=3.0)
+        for p in PixelPoints:
+            plt.plot(gridX[p[0]],gridY[p[1]],'r*')
+        plt.grid()
+        plt.xlim((-150.0,150.0))
+        plt.ylim((-150.0,150.0))
+    
+    def plot_field_slices(self,ipws_img,refls_img,ipws,refls,grid_point):
+        x_ = grid_point[0]
+        y_ = grid_point[1]
+        gridX = np.arange(-150.0,151.0,300.0/(100-1))
+        gridY = np.arange(-150.0,151.0,300.0/(100-1))
+        gridIPW = np.zeros((100,100))
+#        i_start = x_ -16
+#        i_end = x_ + 17
+#        j_start = y_ -16
+#        j_end = y_ + 17
+        
+        x_range_start = gridX[x_] - 16.0*(300.0/99.0)
+        y_range_start = gridY[y_] - 16.0*(300.0/99.0)
+        x_range_end = gridX[x_] + 17.0*(300.0/99.0)
+        y_range_end = gridY[y_] + 17.0*(300.0/99.0)
+        
+        gridX_ = np.arange(x_range_start,x_range_end,300./99.)
+        gridY_ = np.arange(y_range_start,y_range_end,300./99.)
+        plt.figure()
+        for pl in range(1,5):
+            plt.subplot(2,4,pl)
+            plt.pcolor(gridX_,gridY_,ipws[pl-1,...],cmap='gist_ncar', vmin=-3.0, vmax=3.0)
+            plt.xlim((-150.0,150.0))
+            plt.ylim((-150.0,150.0))
+            plt.grid()
+            plt.subplot(2,4,pl + 4)
+            plt.pcolor(gridX_,gridY_,refls[pl-1,...],cmap='jet', vmin=0, vmax=60)
+            plt.xlim((-150.0,150.0))
+            plt.ylim((-150.0,150.0))
+            plt.grid()
+        plt.figure()
+        for pl in range(1,5):
+            plt.subplot(2,4,pl)
+            plt.imshow(ipws_img[pl-1,...], cmap = cm.Greys_r)
+            plt.subplot(2,4,pl+4)
+            plt.imshow(refls_img[pl-1,...], cmap = cm.Greys_r)
     
     def plot_predictions(self,movie_points,save_fige=True):
         gridX = np.arange(-150.0,151.0,300.0/(100-1))
