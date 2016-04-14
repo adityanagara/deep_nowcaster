@@ -17,7 +17,7 @@ class CommonData:
         self.KFWSlong = -97.30278
         self.sites = np.loadtxt('/Users/adityanagarajan/Summer_2015/ConvectiveInitiation/data/KFWS_GPS_ASOS_locations.csv',dtype='S',delimiter = ',',skiprows = 1)
         self.base_path = '/home/aditya/UMASS/DFWnet/'
-        self.IPWvals = np.load('/Users/adityanagarajan/Summer_2015/ConvectiveInitiation/data/2014Data_update1.npy')
+        self.IPWvals_2014 = np.load('/Users/adityanagarajan/projects/nowcaster/data/2014IPW_data.npy')
         self.IPWvals_2015 = np.load('/Users/adityanagarajan/projects/nowcaster/data/2015IPW_data.npy')
         self.Prvals = np.load('/Users/adityanagarajan/Summer_2015/ConvectiveInitiation/data/2014PressureData_update1.npy')
         self.cnvl_ip = '129.107.93.30'

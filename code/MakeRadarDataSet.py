@@ -107,7 +107,6 @@ def ConvertToNETCDF(file_path,keep_files):
         temp_in = file_path + raw_file
         temp_out = file_path + raw_file + '.nc'
         subprocess.call(['java','-classpath',java_script,ucar,'-in',temp_in,'-out',temp_out,])
-#        os.remove(temp_in)
 
 
 

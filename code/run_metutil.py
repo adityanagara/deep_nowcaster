@@ -53,6 +53,8 @@ def dict_func(this,b):
 map(lambda x: dict_func(dict1,x),doy_list)
 
 
+doy_list = [str(x) for x in range(121,243)]
+
 for n in sys.argv[1:]:
     FATAL_DOY = 0
     DOYS = []

@@ -94,7 +94,6 @@ def main(num_epochs = 100,num_points = 1200,compute_flag='cpu'):
     else:
         network,l_hidden1 = Deep_learner.build_DCNN(input_var)
     
-    
     train_prediction = lasagne.layers.get_output(network)
     test_prediction = lasagne.layers.get_output(network)
     if compute_flag == 'gpu3_softmax':

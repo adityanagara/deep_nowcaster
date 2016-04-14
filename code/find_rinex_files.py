@@ -53,13 +53,14 @@ def split_files():
 
 def run_gamit(doy,net):
     os.chdir('/home/aditya/UMASS/DFWnetDB' + os.sep + net + '/2015')
-    subprocess.call(['sh_gamit','-expt',net,'-d','2015',doy,'-orbit','IGSF','-met','-metutil','Z','-noftp'])
+    subprocess.call(['sh_gamit','-expt',net,'-d','2015',doy,'-orbit','IGSF','-met'])
     print '%%%% Processing for  ' + doy + '  is complete %%%%'
 
 net = sys.argv[1]
-doy_list = [str(x).zfill(3) for x in range(121,152)]
+#doy_list = [str(x).zfill(3) for x in range(188,212)]
+doy_list = ['180','181']
 for doy in doy_list:
-#    download_files(doy,net)
+    download_files(doy,net)
     run_gamit(doy,net)
         
         

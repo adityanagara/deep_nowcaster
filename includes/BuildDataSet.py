@@ -12,7 +12,7 @@ import getpass
 
 '''
 This package deals with building data sets for training a machine learning
-based nowcasting system. This means we can build 3 frames of IPW and 4 frames
+based nowcasting system. This means we can build 4 frames of IPW and 4 frames
 of reflectivity for each sampled point. 
 '''
 

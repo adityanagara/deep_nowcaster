@@ -16,8 +16,6 @@ from netCDF4 import Dataset
 from matplotlib import pyplot as plt
 import time
 
-
-
 DFW = DFWnet.CommonData()
 yr = 15    
 
@@ -324,8 +322,6 @@ def plot_radarIPW(t,doy,IPWvals,W,dirToMake):
     
     #Plot values greater than 30 dbZ
     gridZ[gridZ < 30.0] = np.nan
-    
-    
     
     
     gridIPW = gridIPWfields(t,IPWvals,W,doy)
