@@ -272,8 +272,6 @@ np.save('output/real_prediction_array_2015.npy',real_predictions)
 #save_predictions = file('output/output_array.pkl','wb')
 #cPickle.dump(predictions_,save_predictions,protocol = cPickle.HIGHEST_PROTOCOL)
 #save_predictions.close()
-
-
 #np.save('data/NB_real_predictions.npy',real_predictions)
 
 print 'Done!'

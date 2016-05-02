@@ -1,0 +1,344 @@
+1x-nat-vl931-172-30-139-28:code adityanagarajan$ python RF_prediction_experiments.py 
+--------------------------------------------------
+Validation year = 14 Month = 5
+Precision = 0.66
+Recall = 0.33
+F1 score = 0.44
+Area under the curve = 0.51
+POD = 0.33
+FAR = 0.34
+CSI = 0.28
+--------------------------------------------------
+Validation year = 14 Month = 6
+Precision = 0.65
+Recall = 0.25
+F1 score = 0.36
+Area under the curve = 0.53
+POD = 0.25
+FAR = 0.35
+CSI = 0.22
+--------------------------------------------------
+Validation year = 14 Month = 7
+Precision = 0.63
+Recall = 0.27
+F1 score = 0.38
+Area under the curve = 0.43
+POD = 0.27
+FAR = 0.37
+CSI = 0.23
+--------------------------------------------------
+Validation year = 14 Month = 8
+Precision = 0.62
+Recall = 0.22
+F1 score = 0.33
+Area under the curve = 0.42
+POD = 0.22
+FAR = 0.38
+CSI = 0.20
+--------------------------------------------------
+Validation year = 15 Month = 5
+Precision = 0.54
+Recall = 0.12
+F1 score = 0.20
+Area under the curve = 0.36
+POD = 0.12
+FAR = 0.46
+CSI = 0.11
+--------------------------------------------------
+Validation year = 15 Month = 6
+Precision = 0.79
+Recall = 0.31
+F1 score = 0.45
+Area under the curve = 0.62
+POD = 0.31
+FAR = 0.21
+CSI = 0.29
+--------------------------------------------------
+Validation year = 15 Month = 7
+Precision = 0.38
+Recall = 0.02
+F1 score = 0.04
+Area under the curve = 0.14
+POD = 0.02
+FAR = 0.62
+CSI = 0.02
+
+Experiment 1: average and standard deviations as features with 250 trees in the forest
+
+--------------------------------------------------
+Validation year = 14 Month = 5
+Precision = 0.69
+Recall = 0.29
+F1 score = 0.41
+Area under the curve = 0.54
+POD = 0.29
+FAR = 0.31
+CSI = 0.26
+--------------------------------------------------
+Validation year = 14 Month = 6
+Precision = 0.68
+Recall = 0.24
+F1 score = 0.35
+Area under the curve = 0.56
+POD = 0.24
+FAR = 0.32
+CSI = 0.22
+--------------------------------------------------
+Validation year = 14 Month = 7
+Precision = 0.65
+Recall = 0.21
+F1 score = 0.32
+Area under the curve = 0.44
+POD = 0.21
+FAR = 0.35
+CSI = 0.19
+--------------------------------------------------
+Validation year = 14 Month = 8
+Precision = 0.70
+Recall = 0.20
+F1 score = 0.31
+Area under the curve = 0.48
+POD = 0.20
+FAR = 0.30
+CSI = 0.18
+--------------------------------------------------
+Validation year = 15 Month = 5
+Precision = 0.57
+Recall = 0.11
+F1 score = 0.19
+Area under the curve = 0.42
+POD = 0.11
+FAR = 0.43
+CSI = 0.11
+--------------------------------------------------
+Validation year = 15 Month = 6
+Precision = 0.81
+Recall = 0.28
+F1 score = 0.41
+Area under the curve = 0.64
+POD = 0.28
+FAR = 0.19
+CSI = 0.26
+--------------------------------------------------
+Validation year = 15 Month = 7
+Precision = 0.52
+Recall = 0.01
+F1 score = 0.02
+Area under the curve = 0.22
+POD = 0.01
+FAR = 0.48
+CSI = 0.01
+
+Neural nets experiment 
+
+Train Model for epoch: 1
+Validating model for epoch: 1
+Final Accuracy = 0.962399
+Train Model for epoch: 2
+Validating model for epoch: 2
+Final Accuracy = 0.962399
+Train Model for epoch: 3
+Validating model for epoch: 3
+Final Accuracy = 0.962399
+Train Model for epoch: 4
+Validating model for epoch: 4
+Final Accuracy = 0.962399
+Train Model for epoch: 5
+Validating model for epoch: 5
+Final Accuracy = 0.962399
+Train Model for epoch: 6
+Validating model for epoch: 6
+Final Accuracy = 0.962403
+Train Model for epoch: 7
+Validating model for epoch: 7
+Final Accuracy = 0.962399
+Train Model for epoch: 8
+Validating model for epoch: 8
+Final Accuracy = 0.962421
+Train Model for epoch: 9
+Validating model for epoch: 9
+Final Accuracy = 0.962432
+Train Model for epoch: 10
+Validating model for epoch: 10
+Final Accuracy = 0.962465
+Train Model for epoch: 11
+Validating model for epoch: 11
+Final Accuracy = 0.962541
+Train Model for epoch: 12
+Validating model for epoch: 12
+Final Accuracy = 0.963252
+Train Model for epoch: 13
+Validating model for epoch: 13
+Final Accuracy = 0.963053
+Train Model for epoch: 14
+Validating model for epoch: 14
+Final Accuracy = 0.962995
+Train Model for epoch: 15
+Validating model for epoch: 15
+Final Accuracy = 0.963064
+Train Model for epoch: 16
+Validating model for epoch: 16
+Final Accuracy = 0.963521
+Train Model for epoch: 17
+Validating model for epoch: 17
+Final Accuracy = 0.963543
+Train Model for epoch: 18
+Validating model for epoch: 18
+Final Accuracy = 0.963470
+Train Model for epoch: 19
+Validating model for epoch: 19
+Final Accuracy = 0.963764
+Train Model for epoch: 20
+Validating model for epoch: 20
+Final Accuracy = 0.964334
+Train Model for epoch: 21
+Validating model for epoch: 21
+Final Accuracy = 0.964933
+Train Model for epoch: 22
+Validating model for epoch: 22
+Final Accuracy = 0.964479
+Train Model for epoch: 23
+Validating model for epoch: 23
+Final Accuracy = 0.964283
+Train Model for epoch: 24
+Validating model for epoch: 24
+Final Accuracy = 0.964878
+Train Model for epoch: 25
+Validating model for epoch: 25
+Final Accuracy = 0.964998
+Train Model for epoch: 26
+Validating model for epoch: 26
+Final Accuracy = 0.965187
+Train Model for epoch: 27
+Validating model for epoch: 27
+Final Accuracy = 0.965688
+Train Model for epoch: 28
+Validating model for epoch: 28
+Final Accuracy = 0.965637
+Train Model for epoch: 29
+Validating model for epoch: 29
+Final Accuracy = 0.966192
+Train Model for epoch: 30
+Validating model for epoch: 30
+Final Accuracy = 0.966015
+Train Model for epoch: 31
+Validating model for epoch: 31
+Final Accuracy = 0.966526
+Train Model for epoch: 32
+Validating model for epoch: 32
+Final Accuracy = 0.966759
+Train Model for epoch: 33
+Validating model for epoch: 33
+Final Accuracy = 0.966635
+Train Model for epoch: 34
+Validating model for epoch: 34
+Final Accuracy = 0.967100
+Train Model for epoch: 35
+Validating model for epoch: 35
+Final Accuracy = 0.966987
+Train Model for epoch: 36
+Validating model for epoch: 36
+Final Accuracy = 0.967020
+Train Model for epoch: 37
+Validating model for epoch: 37
+Final Accuracy = 0.966236
+Train Model for epoch: 38
+Validating model for epoch: 38
+Final Accuracy = 0.967354
+Train Model for epoch: 39
+Validating model for epoch: 39
+Final Accuracy = 0.967158
+Train Model for epoch: 40
+Validating model for epoch: 40
+Final Accuracy = 0.966544
+Train Model for epoch: 41
+Validating model for epoch: 41
+Final Accuracy = 0.967742
+Train Model for epoch: 42
+Validating model for epoch: 42
+Final Accuracy = 0.968494
+Train Model for epoch: 43
+Validating model for epoch: 43
+Final Accuracy = 0.968465
+Train Model for epoch: 44
+Validating model for epoch: 44
+Final Accuracy = 0.968265
+Train Model for epoch: 45
+Validating model for epoch: 45
+Final Accuracy = 0.968385
+Train Model for epoch: 46
+Validating model for epoch: 46
+Final Accuracy = 0.967935
+Train Model for epoch: 47
+Validating model for epoch: 47
+Final Accuracy = 0.968015
+Train Model for epoch: 48
+Validating model for epoch: 48
+Final Accuracy = 0.968555
+Train Model for epoch: 49
+Validating model for epoch: 49
+Final Accuracy = 0.968076
+Train Model for epoch: 50
+Validating model for epoch: 50
+Final Accuracy = 0.968537
+Train Model for epoch: 51
+Validating model for epoch: 51
+Final Accuracy = 0.969060
+Train Model for epoch: 52
+Validating model for epoch: 52
+Final Accuracy = 0.968370
+Train Model for epoch: 53
+Validating model for epoch: 53
+Final Accuracy = 0.968657
+Train Model for epoch: 54
+Validating model for epoch: 54
+Final Accuracy = 0.967742
+Train Model for epoch: 55
+Validating model for epoch: 55
+Final Accuracy = 0.968635
+Train Model for epoch: 56
+Validating model for epoch: 56
+Final Accuracy = 0.968051
+Train Model for epoch: 57
+Validating model for epoch: 57
+Final Accuracy = 0.967866
+Train Model for epoch: 58
+Validating model for epoch: 58
+Final Accuracy = 0.967880
+Train Model for epoch: 59
+Validating model for epoch: 59
+Final Accuracy = 0.967793
+Train Model for epoch: 60
+Validating model for epoch: 60
+Final Accuracy = 0.968123
+Train Model for epoch: 61
+Validating model for epoch: 61
+Final Accuracy = 0.968635
+Train Model for epoch: 62
+Validating model for epoch: 62
+Final Accuracy = 0.968780
+Train Model for epoch: 63
+Validating model for epoch: 63
+Final Accuracy = 0.968200
+Train Model for epoch: 64
+Validating model for epoch: 64
+Final Accuracy = 0.968701
+Train Model for epoch: 65
+Validating model for epoch: 65
+Final Accuracy = 0.967975
+Train Model for epoch: 66
+Validating model for epoch: 66
+Final Accuracy = 0.969593
+Train Model for epoch: 67
+Validating model for epoch: 67
+Final Accuracy = 0.968653
+Train Model for epoch: 68
+Validating model for epoch: 68
+Final Accuracy = 0.968690
+Train Model for epoch: 69
+Validating model for epoch: 69
+Final Accuracy = 0.968261
+Train Model for epoch: 70
+Validating model for epoch: 70
+Final Accuracy = 0.967002
+
