@@ -97,7 +97,7 @@ def convert_fields_to_images(data_builder):
             np.save('../data/dataset/20' + str(yr) + os.sep + refl_img_file,refl_img_array)
 
 def make_dataset_NN(data_builder):
-    '''Builds the for frames of ipw and 4 frames of reflectivity'''
+    '''Builds the four frames of ipw and 4 frames of reflectivity'''
     storm_dates_all = {}
     for yr in [14,15]:
         storm_dates_all[yr] = data_builder.load_storm_days(yr)
@@ -173,16 +173,9 @@ def neural_network_model(x_train,y_train,x_val,y_val):
     y = tf.placeholder(tf.float32, [None, 2])
     nn_input = tf.reshape(x, [-1, 33 * 33 * 8])
     
-#    filter_size = 11
-#    n_filters_1 = 32
-#    W_conv1 = weight_variable([filter_size, filter_size, 8, n_filters_1])
-#
-#    b_conv1 = bias_variable([n_filters_1])
-    # strech the frames as a vector
-    
     
     # Build a single layer neural network
-    n_fc = 2000
+    n_fc = 4000
     
     W_fc1 = weight_variable([33 * 33 * 8, n_fc])
     
@@ -248,36 +241,299 @@ def neural_network_model(x_train,y_train,x_val,y_val):
             ctr_val+=1
             
             val_acc += temp_accuracy
+        
+        print 'Final Accuracy = %.6f'%(val_acc / ctr_val)
+
+def convolution_neural_network_model(x_train,y_train,x_val,y_val):
+    # we will have 8712 features because 33*33*8
+    x = tf.placeholder(tf.float32, [None, 33,33,8])
+    # For now binary one hot encoding 
+    y = tf.placeholder(tf.float32, [None, 2])
+    # Convolutiolal model with 7x7 window size 32 filters and stride 2x2
+    filter_size = 7
+    n_filters_1 = 32
+    input_channels = 8
+    # Initialize the weights
+    W_conv1 = weight_variable([filter_size, filter_size, input_channels, n_filters_1])
+    b_conv1 = bias_variable([n_filters_1])
+    # VALID
+    # out_height = ceil(float(in_height - filter_height + 1) / float(strides[1]))
+    # out_width  = ceil(float(in_width - filter_width + 1) / float(strides[2]))
+    
+    # SAME
+    # out_height = ceil(float(in_height) / float(strides[1]))
+    # out_width  = ceil(float(in_width) / float(strides[2]))
+    
+
+    h_conv1 = tf.nn.relu(
+    tf.nn.conv2d(input=x,
+                 filter=W_conv1,
+                 strides=[1, 2, 2, 1],
+                 padding='SAME') +
+    b_conv1)
+    
+    # Initialize the weights
+    W_conv2 = weight_variable([filter_size, filter_size, input_channels, n_filters_1])
+    b_conv2 = bias_variable([n_filters_1])
+
+    h_conv2 = tf.nn.relu(
+    tf.nn.conv2d(input=h_conv1,
+                 filter=W_conv2,
+                 strides=[1, 2, 2, 1],
+                 padding='SAME') +
+    b_conv2)
+
+
+    nn_input = tf.reshape(h_conv2, [-1, 9 * 9 * n_filters_1])
+    
+    # Build a single layer neural network
+    n_fc = 1000
+    
+    W_fc1 = weight_variable([7*7*32, n_fc])
+    
+    b_fc1 = bias_variable([n_fc])
+    
+    h_fc1 = tf.nn.relu(tf.matmul(nn_input, W_fc1) + b_fc1)
+    
+    W_fc2 = weight_variable([n_fc, 2])
+    
+    b_fc2 = bias_variable([2])
+    
+    prediction = tf.nn.softmax(tf.matmul(h_fc1, W_fc2) + b_fc2)
+    
+    pred = tf.argmax(prediction, 1)
+    truth = tf.argmax(y, 1)
+    correct_prediction = tf.equal(pred, truth)
+
+    cross_entropy = -tf.reduce_sum(y * tf.log(prediction))
+    
+    optimizer = tf.train.GradientDescentOptimizer(0.0001).minimize(cross_entropy)
+    
+    correct_prediction = tf.equal(tf.argmax(prediction, 1), tf.argmax(y, 1))
+    
+    accuracy = tf.reduce_mean(tf.cast(correct_prediction, 'float'))
+    
+    # Define nowcasting metrics which we will measure after every epoch
+    hits = tf.reduce_sum(tf.cast(tf.logical_and(tf.equal(truth, pred),tf.equal(truth,1)),'float'))
+    misses = tf.reduce_sum(tf.cast(tf.logical_and(tf.not_equal(truth, pred),tf.equal(truth,1)),'float'))
+    false_alarms = tf.reduce_sum(tf.cast(tf.logical_and(tf.not_equal(truth, pred),tf.equal(truth,0)),'float'))
+    
+    POD = tf.div(hits,tf.add(hits,misses))
+    FAR = tf.div(false_alarms,tf.add(false_alarms,hits))
+    CSI = tf.div(hits,tf.add_n([hits,misses,false_alarms]))
+
+    sess = tf.Session()
+    sess.run(tf.initialize_all_variables())
+    performance_metrics = {}
+    for ep in range(1000):
+        performance_metrics[ep] = []
+        print 'Train Model for epoch: %d'%(ep+1)
+        print '-'*50
+        for tr_file in train_files:
+            print tr_file
+            if re.findall('\d+',tr_file)[0] == '14':
+                base_path = '../data/TrainTest/2014/'
+            else:
+                base_path = '../data/TrainTest/2015/'
             
-#            y_score = sess.run(prediction,feed_dict = {x: x_val_batch,y:y_val_batch})
+            temp_matrix = np.load(base_path + tr_file)
             
-#            y_hat = np.argmax(y_score,axis=1)
+            x_train = []
+            y_train = []
+            for pt in xrange(len(temp_matrix)):         
+                x_train.append(temp_matrix[pt][0])
+                y_train.append(temp_matrix[pt][1])
             
-#            temp_performance = ModelMetrics.NOWCAST_performance((y_hat,np.argmax(y_val_batch,axis=1),y_score))
+            x_train = np.vstack(x_train)
+            y_train = np.vstack(y_train)
+
+            y_train = y_train.reshape(-1,)
+            one_hot = np.zeros((y_train.shape[0], 2),dtype='uint8')
+            one_hot[np.arange(y_train.shape[0]),y_train] = 1
+            y_train = one_hot
+            x_train = x_train.transpose(0,2,3,1)
+            x_train.shape,y_train.shape
+            for batch in iterate_minibatches(x_train,y_train,500):
             
-#            print 'validation accuracy for batch %.6f'%val_acc
+                x_batch,y_batch = batch                
+                x_batch = x_batch.astype('float32') / 255.          
+                sess.run(optimizer, feed_dict = {
+                    x: x_batch, y: y_batch.astype('float32')})
+            
+        ctr_val = 0.
+        val_acc = 0.
+        
+        print 'Validating model for epoch: %d'%(ep+1)
+        print '-'*50
+        for val_file in val_files:
+            print val_file
+            if re.findall('\d+',val_file)[0] == '14':
+                base_path = '../data/TrainTest/2014/'
+            else:
+                base_path = '../data/TrainTest/2015/'
+            
+            temp_matrix = np.load(base_path + val_file)
+            
+            x_val = []
+            y_val = []
+            for pt in xrange(len(temp_matrix)):         
+                x_val.append(temp_matrix[pt][0])
+                y_val.append(temp_matrix[pt][1])
+            
+            x_val = np.vstack(x_val)
+            y_val = np.vstack(y_val)
+
+            y_val = y_val.reshape(-1,)
+            one_hot = np.zeros((y_val.shape[0], 2),dtype='uint8')
+            one_hot[np.arange(y_val.shape[0]),y_val] = 1
+            y_val = one_hot
+            x_val = x_val.transpose(0,2,3,1)
+            print x_val.shape,y_val.shape
+            print '-'*50
+            for val_batch in iterate_minibatches(x_val,y_val,500):
+                x_val_batch,y_val_batch = val_batch                
+                x_val_batch = x_val_batch / 255.
+                temp_accuracy = sess.run([accuracy,POD,FAR,CSI],
+                   feed_dict={
+                       x: x_val_batch,
+                       y: y_val_batch.astype('float32')
+                       })
+        
+                ctr_val+=1
+            
+                val_acc += temp_accuracy
         
         print 'Final Accuracy = %.6f'%(val_acc / ctr_val)
         
-
-#    
-#        y_hat = np.argmax(y_score,axis=1)
-#    
-#        performance = ModelMetrics.NOWCAST_performance((y_hat,np.argmax(y_val,axis=1),y_score))
-#        
-#        print 'Precision = %.2f'%performance.p_score
-#        print 'Recall = %.2f'%performance.r_score
-#        print 'F1 score = %.2f'%performance.f1
-#        print 'Area under the curve = %.2f'%performance.average_precision
-#        
-#        print 'POD = %.2f'%performance.POD
-#        print 'FAR = %.2f'%performance.FAR
-#        print 'CSI = %.2f'%performance.CSI
-        
-
-        
     sess.close()
+     
+
+def neural_network_model_new(train_files,val_files):
+    # we will have 8712 features because 33*33*8
+    x = tf.placeholder(tf.float32, [None, 33,33,8])
+    # For now binary one hot encoding 
+    y = tf.placeholder(tf.float32, [None, 2])
+    nn_input = tf.reshape(x, [-1, 33 * 33 * 8])
+    
+    
+    # Build a single layer neural network
+    n_fc = 4000
+    
+    W_fc1 = weight_variable([33 * 33 * 8, n_fc])
+    
+    b_fc1 = bias_variable([n_fc])
+    
+    h_fc1 = tf.nn.relu(tf.matmul(nn_input, W_fc1) + b_fc1)
+    
+    W_fc2 = weight_variable([n_fc, 2])
+    
+    b_fc2 = bias_variable([2])
+    
+    prediction = tf.nn.softmax(tf.matmul(h_fc1, W_fc2) + b_fc2)
+    
+    cross_entropy = -tf.reduce_sum(y * tf.log(prediction))
+    
+    optimizer = tf.train.GradientDescentOptimizer(0.0001).minimize(cross_entropy)
+    
+    pred = tf.argmax(prediction, 1)
+    truth = tf.argmax(y, 1)
+    correct_prediction = tf.equal(pred, truth)
+    
+    accuracy = tf.reduce_mean(tf.cast(correct_prediction, 'float'))
+    
+    # Define nowcasting metrics which we will measure after every epoch
+    hits = tf.reduce_sum(tf.cast(tf.logical_and(tf.equal(truth, pred),tf.equal(truth,1)),'float'))
+    misses = tf.reduce_sum(tf.cast(tf.logical_and(tf.not_equal(truth, pred),tf.equal(truth,1)),'float'))
+    false_alarms = tf.reduce_sum(tf.cast(tf.logical_and(tf.not_equal(truth, pred),tf.equal(truth,0)),'float'))
+    
+    POD = tf.div(hits,tf.add(hits,misses))
+    FAR = tf.div(false_alarms,tf.add(false_alarms,hits))
+    CSI = tf.div(hits,tf.add_n([hits,misses,false_alarms]))
+
+    
+    sess = tf.Session()
+    sess.run(tf.initialize_all_variables())
+    performance_metrics = {}
+    for ep in range(1000):
+        performance_metrics[ep] = []
+        print 'Train Model for epoch: %d'%(ep+1)
+        print '-'*50
+        for tr_file in train_files:
+            print tr_file
+            if re.findall('\d+',tr_file)[0] == '14':
+                base_path = '../data/TrainTest/2014/'
+            else:
+                base_path = '../data/TrainTest/2015/'
+            
+            temp_matrix = np.load(base_path + tr_file)
+            
+            x_train = []
+            y_train = []
+            for pt in xrange(len(temp_matrix)):         
+                x_train.append(temp_matrix[pt][0])
+                y_train.append(temp_matrix[pt][1])
+            
+            x_train = np.vstack(x_train)
+            y_train = np.vstack(y_train)
+
+            y_train = y_train.reshape(-1,)
+            one_hot = np.zeros((y_train.shape[0], 2),dtype='uint8')
+            one_hot[np.arange(y_train.shape[0]),y_train] = 1
+            y_train = one_hot
+            x_train = x_train.transpose(0,2,3,1)
+            x_train.shape,y_train.shape
+            for batch in iterate_minibatches(x_train,y_train,500):
+            
+                x_batch,y_batch = batch                
+                x_batch = x_batch.astype('float32') / 255.          
+                sess.run(optimizer, feed_dict = {
+                    x: x_batch, y: y_batch.astype('float32')})
+            
+        ctr_val = 0.
+        val_acc = 0.
         
+        print 'Validating model for epoch: %d'%(ep+1)
+        print '-'*50
+        for val_file in val_files:
+            print val_file
+            if re.findall('\d+',val_file)[0] == '14':
+                base_path = '../data/TrainTest/2014/'
+            else:
+                base_path = '../data/TrainTest/2015/'
+            
+            temp_matrix = np.load(base_path + val_file)
+            
+            x_val = []
+            y_val = []
+            for pt in xrange(len(temp_matrix)):         
+                x_val.append(temp_matrix[pt][0])
+                y_val.append(temp_matrix[pt][1])
+            
+            x_val = np.vstack(x_val)
+            y_val = np.vstack(y_val)
+
+            y_val = y_val.reshape(-1,)
+            one_hot = np.zeros((y_val.shape[0], 2),dtype='uint8')
+            one_hot[np.arange(y_val.shape[0]),y_val] = 1
+            y_val = one_hot
+            x_val = x_val.transpose(0,2,3,1)
+            print x_val.shape,y_val.shape
+            print '-'*50
+            for val_batch in iterate_minibatches(x_val,y_val,500):
+                x_val_batch,y_val_batch = val_batch                
+                x_val_batch = x_val_batch / 255.
+                temp_accuracy = sess.run([accuracy,POD,FAR,CSI],
+                   feed_dict={
+                       x: x_val_batch,
+                       y: y_val_batch.astype('float32')
+                       })
+        
+                ctr_val+=1
+            
+                val_acc += temp_accuracy
+        
+        print 'Final Accuracy = %.6f'%(val_acc / ctr_val)
+
 def train_neural_net(train_files,validation_files):
     '''We do a total of 7 runs, train on 6 months and test on the 7th
     month thus loop thru the 7 teain,validation file blocks'''
@@ -348,10 +604,16 @@ def main(convert_to_images = False):
     data_builder = BuildDataSet.dataset(num_points = 500)
     training_blocks,validation_blocks = build_training_validation_sets(data_builder)
     if convert_to_images:
-        convert_fields_to_images(data_builder)
+#        convert_fields_to_images(data_builder)
         make_dataset_NN(data_builder)
     train,validation = arrange_training_validation(training_blocks,validation_blocks)
-    train_neural_net(train,validation)
+    
+    exp_no = 0
+    for tr,val in zip(train,validation):
+        print 'Train Test Split %d '%(exp_no + 1)
+        neural_network_model_new(tr,val)
+        exp_no+=1
+#    train_neural_net(train,validation)
     
 if __name__ == '__main__':
     main()

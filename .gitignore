@@ -9,3 +9,5 @@ logs/
 *.apr
 *.nz
 *.gz
+*.ppk
+*.pem

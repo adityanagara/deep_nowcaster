@@ -8,7 +8,7 @@ Created on Tue Jan  5 11:48:23 2016
 
 
 
-# Custom package in ./includes
+# Custom package in ../includes
 import BuildDataSet
 # Numerical package
 import numpy as np

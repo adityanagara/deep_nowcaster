@@ -28,7 +28,7 @@ class dataset(object):
         if user == 'adityanagarajan':
             return '/Users/adityanagarajan/projects/nowcaster/data/dataset/20' + str(yr) 
         else:
-            return '/home/an67a/deep_nowcaster/data/dataset/' + str(yr)
+            return '/mnt/deep_nowcaster/data/dataset/20' + str(yr)
     def sort_IPW_refl_files(self,yr):
         # get all the files in the dataset folder
         files = os.listdir(self.get_data_path(yr))
