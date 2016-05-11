@@ -14,7 +14,7 @@ y_pred = tf.placeholder(tf.float32, [None, 2])
 
 ground_truth = np.array(([1,0],[1,0],[0,1],[1,0],[1,0],[0,1],[1,0],[0,1]))
 
-prediction = np.array(([1,0],[0,1],[0,0],[0,1],[1,0],[0,1],[1,0],[0,0]))
+prediction = np.array(([1,0],[0,0],[0,1],[0,1],[1,0],[0,0],[1,0],[0,0]))
 print ground_truth
 print prediction
 
@@ -35,9 +35,9 @@ pred = tf.argmax(y_pred, 1)
 
 #hits = tf.reduce_sum(tf.cast(tf.logical_and(tf.equal(tf.argmax(y_true, 1), tf.argmax(y_pred, 1)),tf.equal(tf.argmax(y_true, 1),1)),'float'))
 
-hits = tf.reduce_sum(tf.cast(tf.logical_and(tf.equal(truth, pred),tf.equal(truth,1)),'float'))
-misses = tf.reduce_sum(tf.cast(tf.logical_and(tf.not_equal(truth, pred),tf.equal(truth,1)),'float'))
-false_alarms = tf.reduce_sum(tf.cast(tf.logical_and(tf.not_equal(truth, pred),tf.equal(truth,0)),'float'))
+hits = tf.reduce_sum(tf.cast(tf.logical_and(tf.equal(truth, pred),tf.equal(truth,1)),'float')) + 1e-16
+misses = tf.reduce_sum(tf.cast(tf.logical_and(tf.not_equal(truth, pred),tf.equal(truth,1)),'float'))  + 1e-16
+false_alarms = tf.reduce_sum(tf.cast(tf.logical_and(tf.not_equal(truth, pred),tf.equal(truth,0)),'float')) 
 
 
 #hits = tf.logical_and(tf.equal(truth, prediction),tf.equal(truth,1))
@@ -52,12 +52,12 @@ false_alarms = tf.reduce_sum(tf.cast(tf.logical_and(tf.not_equal(truth, pred),tf
 #tf.reduce_all()
 #ADD = tf.add(hits,misses)
 
-POD = tf.div(hits,tf.add(hits,misses))
-FAR = tf.div(false_alarms,tf.add(false_alarms,hits))
-CSI = tf.div(hits,tf.add_n([hits,misses,false_alarms]))
+POD = tf.div(hits ,tf.add(hits,misses) )
+FAR = tf.div(false_alarms,tf.add(false_alarms,hits) )
+CSI = tf.div(hits ,tf.add_n([hits,misses,false_alarms]) )
 
 sess = tf.Session()
-temp_accuracy = sess.run([CSI],
+temp_accuracy = sess.run([POD,FAR,CSI],
                    feed_dict={
                        y_true: ground_truth,
                        y_pred: prediction
@@ -67,6 +67,24 @@ print temp_accuracy
 
 sess.close()
 
+def iterate_minibatches(inputs, targets, batchsize, shuffle=False):
+    assert len(inputs) == len(targets)
+    if shuffle:
+        indices = np.arange(len(inputs))
+        np.random.shuffle(indices)
+    for start_idx in range(0, len(inputs) - batchsize + 1, batchsize):
+        if shuffle:
+            excerpt = indices[start_idx:start_idx + batchsize]
+        else:
+            excerpt = slice(start_idx, start_idx + batchsize)
+        print excerpt
+        yield inputs[excerpt], targets[excerpt]
+
+X = np.random.normal(size=(32,1))
+Y = np.random.randint(1,2,size = (32,1))
+
+for batch in iterate_minibatches(X,Y,10):
+    print batch[0].shape,batch[1].shape
 
 
 

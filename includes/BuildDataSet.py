@@ -340,7 +340,10 @@ class dataset(object):
 
             # increment counter
             matrix_ctr+=1
-        return out_matrixIPW,out_matrixRadar
+        
+        year_day_time = np.array(map(lambda x: re.findall('\d+',x.split('/')[-1]),temp_ipw_file_list),dtype = 'int')
+        
+        return (year_day_time,out_matrixIPW,out_matrixRadar)
 
     
     def sample_random_pixels(self):
@@ -410,14 +413,16 @@ class dataset(object):
     
     # This function is to arrange frames with single days or string of days
     def arrange_frames_single(self,IPW_Refl_points):
+        year_day_time = IPW_Refl_points[0]
+        IPWFeatures = IPW_Refl_points[1]
+        year_day_time = year_day_time[~np.any(np.isnan(IPWFeatures),axis = 1),:]
         # Load IPW frames
-        IPWFeatures = IPW_Refl_points[0]
         # Drop all time stamps which do not have the last 4 frames or any row that has a nan value        
         IPWFeatures = IPWFeatures[~np.any(np.isnan(IPWFeatures),axis = 1),:]
         # Load ground truth
         Y = IPWFeatures[:,-1].reshape(IPWFeatures.shape[0],1)
         # Load Refl. frames
-        ReflFeatures = IPW_Refl_points[1]
+        ReflFeatures = IPW_Refl_points[2]
         # Drop all time stamps which do not have the last 4 frames        
         ReflFeatures = ReflFeatures[~np.any(np.isnan(ReflFeatures),axis = 1),:]
         # Stack frames into volumes
@@ -429,7 +434,7 @@ class dataset(object):
         # Merge IPW and reflectivity to create volume of shape number of examples x 8 x 33 x 33
         X = np.concatenate((IPWFeatures,ReflFeatures),axis=1)
         # return data sets
-        return X.astype('uint8'),Y.astype('uint8')
+        return (year_day_time,X.astype('uint8'),Y.astype('uint8'))
     
     def get_field_statistics(self,random_points):
         
