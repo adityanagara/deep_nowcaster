@@ -105,28 +105,116 @@ def make_dataset_NN_2(data_builder):
         pkl.dump(points_array,temp_file,protocol = pkl.HIGHEST_PROTOCOL)
         temp_file.close()
 
-def iterate_minibatches(inputs, targets, batchsize, shuffle=False):
-    assert len(inputs) == len(targets)
-    if shuffle:
-        indices = np.arange(len(inputs))
-        np.random.shuffle(indices)
-    for start_idx in range(0, len(inputs) - batchsize + 1, batchsize):
-        if shuffle:
-            excerpt = indices[start_idx:start_idx + batchsize]
-        else:
-            excerpt = slice(start_idx, start_idx + batchsize)
-#        print excerpt
-        yield inputs[excerpt], targets[excerpt]
+def determine_indices(file_name,val_block):
+    arr = np.load(file_name)
+    val_indices = []
+    date_blocks = data_builder.club_days(val_block)
+    date_blocks = sorted(date_blocks.keys())
+    for i in range(len(arr)):
+        if np.all(np.in1d(arr[i][0][0,:2],np.array((val_block[:,1],val_block[:,0])).T)):
+            val_indices.append(i)
+    return val_indices
 
-def conv_net(tr_block,val_block):
-    print tr_block,val_block
+def build_CNN_softmax(input_var = None):
     
-def main(make_data_set = False):
-    data_builder = BuildDataSet.dataset(num_points = 500)
+        from lasagne.layers import dnn
+        print('Training the softmax network!!')
+        # Define the input variable which is 4 frames of IPW fields and 4 frames of 
+        # reflectivity fields
+        l_in = lasagne.layers.InputLayer(shape=(None,8,33,33),
+                                        input_var=input_var)
+    
+        l_conv1 = dnn.Conv2DDNNLayer(
+            l_in,
+            num_filters=32,
+            filter_size=(5, 5),
+            stride=(2, 2),
+            nonlinearity=lasagne.nonlinearities.rectify,
+            W=lasagne.init.HeUniform(),
+            b=lasagne.init.Constant(.1),
+            pad = 'full'
+        )
+    
+        l_hidden1 = lasagne.layers.DenseLayer(
+            l_conv1,
+            num_units=2000,
+            nonlinearity=lasagne.nonlinearities.rectify,
+            W=lasagne.init.HeUniform(),
+            b=lasagne.init.Constant(.1)
+        )
+        
+        network = lasagne.layers.DenseLayer(
+            l_hidden1,
+            num_units=2,
+            nonlinearity=lasagne.nonlinearities.softmax)
+    
+        return network
+
+    
+def conv_net(tr_block,val_block,num_epochs=1):
+    #------------------------------------------
+    # Model
+    input_var = T.tensor4('inputs')
+    target_var = T.ivector('targets')
+    net = build_CNN_softmax(input_var)
+    prediction = lasagne.layers.get_output(net)
+    loss = lasagne.objectives.categorical_crossentropy(prediction, target_var)
+    loss = loss.mean()
+    params = lasagne.layers.get_all_params(net, trainable=True)
+    updates = lasagne.updates.nesterov_momentum(
+            loss, params, learning_rate=0.001, momentum=0.9)
+
+    test_prediction = lasagne.layers.get_output(net, deterministic=True)
+    
+    val_accuracy = T.mean(T.eq(T.argmax(test_prediction, axis=1), target_var),
+                      dtype=theano.config.floatX)
+    
+    train_fn = theano.function([input_var, target_var], loss, updates=updates)    
+    #------------------------------------------
+    performance_metrics = {}
+    base_path = '../data/TrainTest/points/'
+    point_files = filter(lambda x: x[-4:] == '.pkl',os.listdir(base_path))
+    val_indices = determine_indices(base_path + point_files[8],val_block)
+    print val_indices
+    first_pass = False
+    val_batches = []
+    for ep in range(num_epochs):
+        performance_metrics[ep] = []
+        print 'Train Model for epoch: %d'%(ep+1)
+        print '-'*50
+        train_err = 0.
+        train_batches = 0
+        for ea_point in point_files:
+            temp_matrix = np.load(base_path + ea_point)
+            print len(temp_matrix)
+            X_train = np.vstack(map(lambda x: temp_matrix[x][1],[i for i in range(29) if i not in val_indices]))
+            Y_train = np.vstack(map(lambda x: temp_matrix[x][2],[i for i in range(29) if i not in val_indices]))
+            if not first_pass:
+                X_val = np.vstack(map(lambda x: temp_matrix[x][1],val_indices))
+                Y_val = np.vstack(map(lambda x: temp_matrix[x][2],val_indices))
+                val_batches.append((X_val,Y_val))
+            train_err += train_fn(X_train,Y_train)
+            train_batches+=1
+            
+        val_acc = 0.
+        val_batches = 0
+        
+        for batch in val_batches:
+            x_batch,y_batch = batch
+            val_acc += val_accuracy(x_batch,y_batch)
+            val_batch+=1
+        
+        print 'Validation accuracy for epoch %d = %.6f'%(ep,val_acc/val_batch)
+
+
+def main(make_data_set = True):
     training_blocks,validation_blocks = build_training_validation_sets(data_builder)
     if make_data_set:
         make_dataset_NN_2(data_builder)
-    conv_net(training_blocks,validation_blocks)
+    
+#    for tr,val in zip(training_blocks,validation_blocks):
+#        conv_net(tr,val)
+    
     
 #    train,validation = arrange_training_validation(training_blocks,validation_blocks)
     
@@ -146,6 +234,7 @@ def main(make_data_set = False):
         
 
 if __name__ == '__main__':
+    data_builder = BuildDataSet.dataset(num_points = 500)
     main()    
 
 
