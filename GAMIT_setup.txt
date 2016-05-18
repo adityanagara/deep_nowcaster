@@ -1,6 +1,0 @@
-sh_setup -yr 2000
-
-aditya@emmy9:~/UMASS/DFWnet/net1/2015/tables$ cp ~/UMASS/DFWnet/net1/2015/tables/sittbl. ~/UMASS/DFWnetDB/net1/2015/tables/
-aditya@emmy9:~/UMASS/DFWnet/net1/2015/tables$ cp ~/UMASS/DFWnet/net1/2015/tables/station.info ~/UMASS/DFWnetDB/net1/2015/tables/
-aditya@emmy9:~/UMASS/DFWnet/net1/2015/tables$ cp ~/UMASS/DFWnet/net1/2015/tables/sestbl. ~/UMASS/DFWnetDB/net1/2015/tables/
-aditya@emmy9:~/UMASS/DFWnet/net1/2015/tables$ cp ~/UMASS/DFWnet/net1/2015/tables/process.defaults ~/UMASS/DFWnetDB/net1/2015/tables/

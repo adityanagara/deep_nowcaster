@@ -3,6 +3,7 @@
 Created on Mon Nov 16 09:44:44 2015
 
 @author: adityanagarajan
+plots the random points.
 """
 
 import os

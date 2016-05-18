@@ -14,7 +14,6 @@ Created on Thu Feb 19 18:18:28 2015
 import math
 import ftplib
 from StringIO import StringIO
-import re
 
 def isfloat(value):
   try:
@@ -117,9 +116,7 @@ temp_file.write('GPS site id' + ',' + 'latitude' + ',' + 'longitude' + '\n')
 temp_file.close()
 
 for log_file in file_list_noaa:
-    #print log_file[-8:]
     if log_file[-8:] == '.log.txt':
-        #print log_file[18:22]
         temp_log = StringIO()
         ftp_noaa.retrbinary('RETR ' + log_file, temp_log.write)
         site_log_file = temp_log.getvalue()
@@ -136,25 +133,12 @@ for log_file in file_list_noaa:
             print lat2,long2
             if distance_on_unit_sphere(lat1,long1,lat2 ,long2) * 6373.0 <= 230.0:
                 print 'Found site in radar range: ' + log_file[18:22]
-                
                 with open(out_site_file,'a') as f:
                     f.write(str(log_file[18:22]) + ',' + str(lat2) + ',' + str(long2) + ',' + site_log_file[ind_height + 25:ind_height + 30] +'\n')
-#            NEXRAD_GPS_list.append(log[20:24])
-#            site_coordinates_lat.append(lat2)
-#            site_coordinates_long.append(long2)
-        
-        
-        
-        
-#/cors/station_log/
 
+        
 ftp_noaa.close()
-
-print '----------------------------------------------------'
-
-#print NEXRAD_GPS_list
-#print site_coordinates_lat
-#print site_coordinates_long
+print '-'*50
 
 
 
