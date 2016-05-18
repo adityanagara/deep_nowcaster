@@ -659,10 +659,6 @@ def neural_network_model_new(train_files,val_files,exp_no):
                 sess.run(optimizer, feed_dict = {
                     x: x_batch, y: y_batch.astype('float32')})
         
-        
-#        print 'Validating model for epoch: %d'%(ep+1)
-#        print '-'*50
-        
         val_acc = 0.
         val_pod = 0.
         val_far = 0.
@@ -670,7 +666,6 @@ def neural_network_model_new(train_files,val_files,exp_no):
         ctr_val = 0.
         
         for val_file in val_files:
-#            print val_file
             if re.findall('\d+',val_file)[0] == '14':
                 base_path = '../data/TrainTest/2014/'
             else:
