@@ -18,17 +18,20 @@ The domain of our predictions is the Dallas Fort-Worth area Texas.
 site in this case KFWS (DFW Texas lat: 32.57278, long: -97.30278). Then we identify the Continuously Operated GPS Stations
 within the 230 km range radius of this radar by parsing thru [GPS station log files](www.ngs.noaa.gov). The output of this 
 script should be a csv file named 'KFWS_230km_sites.csv' containing the station name lat, long, height. 
-
 ```
 cd code
 python NEXRAD_GPS_NOAA_SOPAC.py
-```
 
+```
 2. Find the weather stations within the KFWS range radius. To do this we parse [ASOS](http://weather.noaa.gov/tg/site.shtml)
 station logs to find all weather stations in our domain. This outputs a file gps_wxstation.csv. 
-
 ```
 python WXstations_KFWS.py
 ```
-
-3. 
+3. The main code files of this project are as follows
+```
+python reflectivity_level3_dataset.py
+python reflectivity_ipw_movies.py
+python RF_prediction_experiments.py
+python Deep_NN_prediction_experiments.py
+```

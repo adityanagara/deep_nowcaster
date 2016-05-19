@@ -13,10 +13,27 @@ import numpy as np
 import os
 import DFWnet
 import subprocess
+import ftplib
 
 DFW = DFWnet.CommonData()
 Months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
 
+def GetNEXRADfile(mon,day,yr,order_id = 'HAS010640668'):
+    file_to_get = 'NWS_NEXRAD_NXL3_KFWS_20' +yr + mon + day + '000000_20' + yr + mon + day + '235959.tar.gz'
+    ftp_NEXRAD = ftplib.FTP('ftp.ncdc.noaa.gov','anonymous','adi@gmail.com')  
+    ftp_NEXRAD.cwd('pub/has' + os.sep + order_id + os.sep)
+    file_list = ftp_NEXRAD.nlst()
+    if file_to_get in file_list:
+        print 'We Going to get that file: ' + file_to_get
+        gfile = open(file_to_get,'wb')
+        ftp_NEXRAD.retrbinary('RETR ' + file_to_get,gfile.write)
+        gfile.close()
+    else:
+        print 'FATAL: File not found ' +  file_to_get
+    ftp_NEXRAD.close()
+    subprocess.call(['tar','-xvzf',file_to_get])
+    subprocess.call(['rm',file_to_get])
+    
 def extract_reflectivity_files(doy,yr):
     ''' This function moves the relevant files and untars them to the 
     specific directiry YYYY/MONDD'''
@@ -82,9 +99,10 @@ def KeepRequiredFiles(doy,yr):
     file_list = filter(lambda x: x[:18] == 'KFWD_SDUS54_N0RFWS',file_list)
     # We are noe going to find the closest file to 00 and 30 and obtain 48 such 
     # nexrad files
-    for t in range(48):
-        files_to_keep.append(find_closest_radar_data(time_index[t],file_list))
-    return files_to_keep
+    
+#    for t in range(48):
+#        files_to_keep.append(find_closest_radar_data(time_index[t],file_list))
+    return file_list
 
 def Deletefiles(doy,yr,keep_files):
     '''Delete all the files which are not required'''
@@ -110,26 +128,70 @@ def ConvertToNETCDF(doy,yr,keep_files):
         os.remove(file_path + raw_file)
 
 def main(yr):
-    storm_dates = np.load('../data/storm_dates_2015.npy').astype('int')
-#    storm_dates = np.array(([141,  14,   5,  21],
-#                           [142,  14,   5,  22],
-#                            [148,  14,   5,  28],
-#                            [174,  14,   6,  23],
-#                            [175,  14,   6,  24],
-#                            [179,  14,   6,  28],
-#                            [183,  14,   7,   2],
-#                            [184,  14,   7,   3],
-#                            [195,  14,   7,  14],
-#                            [204,  14,   7,  23]))
+    initial = os.getcwd()
+    order_dict = {}
+    order_dict[14] = 'HAS010756704'
+    order_dict[15] = 'HAS010756706'
+    if yr == 14:
+        storm_dates = np.load('../data/storm_dates_2014.npy').astype('int')
+        # The following 3 dates are going to be removed because we do not
+        # have NEXRAD files for the entire day            
+        idx1 = np.where(np.all(storm_dates == [205,  14,   7,  24],axis=1))[0][0]
+        storm_dates = np.delete(storm_dates,idx1,axis = 0)
+        idx2 = np.where(np.all(storm_dates == [176,  14,   6,  25],axis=1))[0][0]
+        storm_dates = np.delete(storm_dates,idx2,axis = 0)
+        idx3 = np.where(np.all(storm_dates == [204 , 14 ,  7 , 23],axis=1))[0][0]
+        storm_dates = np.delete(storm_dates,idx3,axis = 0)
+    elif yr == 15:
+        storm_dates = np.load('../data/storm_dates_2015.npy').astype('int')
     for d in storm_dates:
-        extract_reflectivity_files(d[0],yr)
+        DFW.doytodate(int(yr),d[0])
+        new_dir = '../data/RadarData/NEXRAD/20' + str(yr) + os.sep + Months[int(DFW.mon) -1] + DFW.day
+        if not os.path.exists(new_dir):
+            os.mkdir(new_dir)
+        os.chdir(new_dir)
+        GetNEXRADfile(DFW.mon,DFW.day,DFW.yr,order_id = order_dict[yr])
+        os.chdir(initial)
         nexrad_files = KeepRequiredFiles(d[0],yr)
-        Deletefiles(d[0],yr,nexrad_files)
+#        Deletefiles(d[0],yr,nexrad_files)
 #        DFW.doytodate(int(yr),d[0])
 #        file_path = '../data/RadarData/NEXRAD/20' + str(yr) + os.sep + Months[int(DFW.mon) -1] + DFW.day + os.sep
 #        nexrad_files = os.listdir(file_path)
         ConvertToNETCDF(d[0],yr,nexrad_files)
 
+'''
+#for doy in range(1,366):
+#    
+#    IPWvals = get_IPW_vals(doy)
+#    
+#    IPWvals = NormalizeIPW_Normal(IPWvals,doy)
+#    
+#    tempArr = np.where(IPWvals > 2.0)
+#    
+#    if tempArr[0].size > 30:
+#        
+#        DFW.doytodate(14,doy)
+#        dirToMake = Months[int(DFW.mon) - 1] + DFW.day
+#        print 'Weather anomaly on ' + DFW.mon + '/' + DFW.day + '/' + '2014'
+#        print dirToMake
+#        
+##        if not os.path.exists('data/RadarData/NEXRAD/' + dirToMake):
+##            os.mkdir('data/RadarData/NEXRAD/' + dirToMake)
+##        initial = os.getcwd()
+##        
+##        os.chdir('data/RadarData/NEXRAD/' + dirToMake)
+##        
+##        GetNEXRADfile(DFW.mon,DFW.day)
+##        f1 = KeepRequiredFiles(Months[int(DFW.mon) - 1],'11')
+##        Deletefiles(f1)
+##        ConvertToNETCDF(f1)
+##        
+##        os.chdir(initial)
+#        Anomalies.append([DFW.mon,DFW.day])
+
+'''
+
 if __name__ == '__main__':
-    yr = 14
-    main(yr)
+    yr = [14,15]
+    for y in yr:
+        main(y)

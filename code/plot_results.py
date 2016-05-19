@@ -34,7 +34,7 @@ import os
 
 print os.getcwd()
 nn_experiments = np.load('../output/neural_net/performance_metrics_1.pkl')
-cnn_experiments = np.load('../output/convolutional_neural_net/performance_metrics_CNN_1.pkl')
+cnn_experiments = np.load('../output/performance_metrics_2.pkl')
 '''
 For neural nets 
 performance_metrics[ep].append([val_acc / ctr_val,
@@ -65,9 +65,9 @@ for i in range(len(cnn_experiments)):
 
 plt.figure()
 plt.plot(PODs_cnn,label = 'POD CNN')
-plt.plot(PODs_nn,label = 'POD NN')
+#plt.plot(PODs_nn,label = 'POD NN')
 plt.plot(FARs_cnn,label = 'FAR CNN')
-plt.plot(FARs_nn,label = 'FAR NN')
+#plt.plot(FARs_nn,label = 'FAR NN')
 plt.legend()
 
 

@@ -17,9 +17,6 @@ import pandas as pd
 from netCDF4 import Dataset
 from matplotlib import pyplot as plt
 import time
-
-
-
 import subprocess
 
 DFW = DFWnet.CommonData()

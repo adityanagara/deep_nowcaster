@@ -13,6 +13,8 @@ from theano import tensor as T
 import lasagne
 import re
 import os
+from lasagne.layers import dnn
+from lasagne.regularization import regularize_layer_params, l2, l1
 
 import cPickle as pkl
 
@@ -120,7 +122,6 @@ def build_DCNN_softmax(input_var = None):
         print('Training the softmax network!!')
         # Define the input variable which is 4 frames of IPW fields and 4 frames of 
         # reflectivity fields
-        from lasagne.layers import dnn
         l_in = lasagne.layers.InputLayer(shape=(None,8,33,33),
                                         input_var=input_var)
     
@@ -134,9 +135,11 @@ def build_DCNN_softmax(input_var = None):
             b=lasagne.init.Constant(.1),
             pad = 'full'
         )
+        
+#        l_maxpool = dnn.MaxPool2DDNNLayer(l_conv1)
     
         l_hidden1 = lasagne.layers.DenseLayer(
-            l_conv1,
+            lasagne.layers.dropout(l_conv1,p=0.3),
             num_units=2000,
             nonlinearity=lasagne.nonlinearities.sigmoid,
             W=lasagne.init.HeUniform(),
@@ -148,7 +151,7 @@ def build_DCNN_softmax(input_var = None):
             num_units=2,
             nonlinearity=lasagne.nonlinearities.softmax)
     
-        return network
+        return network,l_hidden1
 
 def build_CNN_softmax(input_var = None):
     
@@ -186,18 +189,19 @@ def build_CNN_softmax(input_var = None):
         return network
 
     
-def conv_net(tr_block,val_block,num_epochs=100):
+def conv_net(tr_block,val_block,num_epochs,exp_no):
     #------------------------------------------
     # Model
     input_var = T.tensor4('inputs')
     target_var = T.ivector('targets')
-    net = build_CNN_softmax(input_var)
+    net,l1_hidden = build_DCNN_softmax(input_var)
+    l2_penelty = regularize_layer_params(l1_hidden,l2)
     prediction = lasagne.layers.get_output(net)
     loss = lasagne.objectives.categorical_crossentropy(prediction, target_var)
-    loss = loss.mean()
+    loss = loss.mean() + l2_penelty
     params = lasagne.layers.get_all_params(net, trainable=True)
     updates = lasagne.updates.nesterov_momentum(
-            loss, params, learning_rate=0.001, momentum=0.9)
+            loss, params, learning_rate=0.0001, momentum=0.9)
 
     test_prediction = lasagne.layers.get_output(net, deterministic=True)
     
@@ -271,28 +275,22 @@ def conv_net(tr_block,val_block,num_epochs=100):
         print 'CSI for epoch %d = %.6f'%(ep,val_CSI/val_batches_ctr)
         
         performance_metrics[ep].append([val_acc / val_batches_ctr,val_POD / val_batches_ctr,val_FAR / val_batches_ctr,val_CSI / val_batches_ctr])
-        
-        network_file_name = '1_CNN_layer'
-        network_file = file('../output/'+ network_file_name + '_2_' + str(ep + 1) + '.pkl','wb')
-        pkl.dump(net,network_file,protocol = pkl.HIGHEST_PROTOCOL)
-        network_file.close()
+        if (ep+ 1) % 10 == 0:
+            network_file_name = '1_CNN_layer'
+            network_file = file('../output/'+ network_file_name + '_' + str(exp_no) +'_' + str(ep + 1) + '.pkl','wb')
+            pkl.dump(net,network_file,protocol = pkl.HIGHEST_PROTOCOL)
+            network_file.close()
     
-    f1 = file('../output/performance_metrics_' + str(2) + '.pkl','wb')
+    f1 = file('../output/performance_metrics_' + str(exp_no) + '.pkl','wb')
     pkl.dump(performance_metrics,f1,protocol = pkl.HIGHEST_PROTOCOL)
     f1.close()
-        
-        
-        
-
 
 def main(make_data_set = False):
     training_blocks,validation_blocks = build_training_validation_sets(data_builder)
     if make_data_set:
         make_dataset_NN_2(data_builder)
-    
-    conv_net(training_blocks[0],validation_blocks[0])
-#    for tr,val in zip(training_blocks,validation_blocks):
-#        conv_net(tr,val)       
+    for i in range(len(training_blocks)):
+        conv_net(training_blocks[i],validation_blocks[i],200,i)
 
 if __name__ == '__main__':
     data_builder = BuildDataSet.dataset(num_points = 500)
