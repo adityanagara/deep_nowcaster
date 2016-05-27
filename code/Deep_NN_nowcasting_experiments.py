@@ -153,6 +153,100 @@ def build_DCNN_softmax(input_var = None):
     
         return network,l_hidden1
 
+def build_DCNN_maxpool_softmax(input_var = None):
+    
+        print('Training the maxpool network!!')
+        # Define the input variable which is 4 frames of IPW fields and 4 frames of 
+        # reflectivity fields
+        l_in = lasagne.layers.InputLayer(shape=(None,8,33,33),
+                                        input_var=input_var)
+    
+        l_conv1 = dnn.Conv2DDNNLayer(
+            l_in,
+            num_filters=32,
+            filter_size=(5, 5),
+            stride=(1, 1),
+            nonlinearity=lasagne.nonlinearities.rectify,
+            W=lasagne.init.HeUniform(),
+            b=lasagne.init.Constant(.1),
+            pad = 'full'
+        )
+        
+        l_maxpool = dnn.MaxPool2DDNNLayer(l_conv1,(2,2))
+    
+        l_hidden1 = lasagne.layers.DenseLayer(
+            lasagne.layers.dropout(l_maxpool,p=0.3),
+            num_units=2000,
+            nonlinearity=lasagne.nonlinearities.sigmoid,
+            W=lasagne.init.HeUniform(),
+            b=lasagne.init.Constant(.1)
+        )
+        
+        network = lasagne.layers.DenseLayer(
+            l_hidden1,
+            num_units=2,
+            nonlinearity=lasagne.nonlinearities.softmax)
+    
+        return network,l_hidden1
+
+def build_2layer_cnn_maxpool(input_var = None):
+    
+#    from lasagne.layers import Conv2DLayer, MaxPool2DLayer
+    print('Training 2 layer CNN-max pool network!!')
+    # Define the input variable which is 4 frames of IPW fields and 4 frames of 
+    # reflectivity fields
+    l_in = lasagne.layers.InputLayer(shape=(None,8,33,33),
+                                        input_var=input_var)
+                                        
+    l_conv1 = dnn.Conv2DDNNLayer(
+            l_in,
+            num_filters=8,
+            filter_size=(5, 5),
+            stride=(1, 1),
+            nonlinearity=lasagne.nonlinearities.rectify,
+            W=lasagne.init.HeUniform(),
+            b=lasagne.init.Constant(.1),
+            pad = 'full'
+        )
+    
+#    l_maxpool1 = lasagne.layers.Pool2DLayer(l_conv1,
+#                                            (2,2),
+#                                            stride=1)
+    l_maxpool1 = dnn.MaxPool2DDNNLayer(l_conv1,(2,2))
+        
+    l_conv2 = dnn.Conv2DDNNLayer(
+            l_maxpool1,
+            num_filters=16,
+            filter_size=(5, 5),
+            stride=(1, 1),
+            nonlinearity=lasagne.nonlinearities.rectify,
+            W=lasagne.init.HeUniform(),
+            b=lasagne.init.Constant(.1),
+            pad = 'full'
+        )
+    
+#    l_maxpool2 = lasagne.layers.Pool2DLayer(l_conv2,
+#                                            (2,2),
+#                                            stride=1)
+    l_maxpool2 = dnn.MaxPool2DDNNLayer(l_conv2,(2,2))
+        
+    l_hidden1 = lasagne.layers.DenseLayer(
+            lasagne.layers.dropout(l_maxpool2,p=0.3),
+            num_units=100,
+            nonlinearity=lasagne.nonlinearities.sigmoid,
+            W=lasagne.init.HeUniform(),
+            b=lasagne.init.Constant(.1)
+        )
+        
+    network = lasagne.layers.DenseLayer(
+            l_hidden1,
+            num_units=2,
+            nonlinearity=lasagne.nonlinearities.softmax)
+    
+    return network,l_hidden1
+
+
+
 def build_CNN_softmax(input_var = None):
     
         from lasagne.layers import Conv2DLayer
@@ -186,7 +280,7 @@ def build_CNN_softmax(input_var = None):
             num_units=2,
             nonlinearity=lasagne.nonlinearities.softmax)
     
-        return network
+        return network,l_hidden1
 
     
 def conv_net(tr_block,val_block,num_epochs,exp_no):
@@ -194,7 +288,7 @@ def conv_net(tr_block,val_block,num_epochs,exp_no):
     # Model
     input_var = T.tensor4('inputs')
     target_var = T.ivector('targets')
-    net,l1_hidden = build_DCNN_softmax(input_var)
+    net,l1_hidden = build_2layer_cnn_maxpool(input_var)
     l2_penelty = regularize_layer_params(l1_hidden,l2)
     prediction = lasagne.layers.get_output(net)
     loss = lasagne.objectives.categorical_crossentropy(prediction, target_var)
@@ -249,7 +343,6 @@ def conv_net(tr_block,val_block,num_epochs,exp_no):
             train_batches+=1
         print 'Training loss = %.6f'%(train_err/train_batches)
         
-
         first_pass = True
             
         val_acc = 0.
@@ -276,21 +369,21 @@ def conv_net(tr_block,val_block,num_epochs,exp_no):
         
         performance_metrics[ep].append([val_acc / val_batches_ctr,val_POD / val_batches_ctr,val_FAR / val_batches_ctr,val_CSI / val_batches_ctr])
         if (ep+ 1) % 10 == 0:
-            network_file_name = '1_CNN_layer'
+            network_file_name = '2_CNN_layer_max_pool'
             network_file = file('../output/'+ network_file_name + '_' + str(exp_no) +'_' + str(ep + 1) + '.pkl','wb')
             pkl.dump(net,network_file,protocol = pkl.HIGHEST_PROTOCOL)
             network_file.close()
     
-    f1 = file('../output/performance_metrics_' + str(exp_no) + '.pkl','wb')
-    pkl.dump(performance_metrics,f1,protocol = pkl.HIGHEST_PROTOCOL)
-    f1.close()
+            f1 = file('../output/performance_metrics_2layer_maxpool' + str(exp_no) + '.pkl','wb')
+            pkl.dump(performance_metrics,f1,protocol = pkl.HIGHEST_PROTOCOL)
+            f1.close()
 
 def main(make_data_set = False):
     training_blocks,validation_blocks = build_training_validation_sets(data_builder)
     if make_data_set:
         make_dataset_NN_2(data_builder)
-    for i in range(len(training_blocks)):
-        conv_net(training_blocks[i],validation_blocks[i],200,i)
+    for i in range(7):
+        conv_net(training_blocks[i],validation_blocks[i],100,i)
 
 if __name__ == '__main__':
     data_builder = BuildDataSet.dataset(num_points = 500)

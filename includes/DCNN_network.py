@@ -56,13 +56,13 @@ class DCNN_network:
     
     def build_CNN(self,input_var = None):
     
-        from lasagne.layers import Conv2DLayer
+#        from lasagne.layers import Conv2DLayer
         # Define the input variable which is 4 frames of IPW fields and 4 frames of 
         # reflectivity fields
         l_in = lasagne.layers.InputLayer(shape=self.input_shape,
                                         input_var=input_var)
     
-        l_conv1 = Conv2DLayer(
+        l_conv1 = lasagne.layers.Conv2DLayer(
             l_in,
             num_filters=32,
             filter_size=(11, 11),

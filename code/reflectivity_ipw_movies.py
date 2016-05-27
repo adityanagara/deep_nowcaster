@@ -408,7 +408,6 @@ def make_summary_dataframe(yr,IPWvals):
         SummaryStats.loc[itr] = temp_list
         itr+=1
     return SummaryStats
-        
     
 def main(yr,storm_dates):        
     DFW_network = DFWnet.CommonData()
@@ -424,7 +423,7 @@ def main(yr,storm_dates):
     SummaryStats.to_csv('../data/DFWsites_summary_20'+ str(yr) + '.csv')
     SummaryStats = pd.read_csv('../data/DFWsites_summary_20'+ str(yr) + '.csv',index_col=0)
     
-    for d in storm_dates[26:]:
+    for d in storm_dates:
         # add to the above dictionary the dates with bad vals
         drop_stations(yr,d[0],IPWvals,missing_value_dict[d[0] - 1])
         print d,missing_value_dict[d[0] - 1]

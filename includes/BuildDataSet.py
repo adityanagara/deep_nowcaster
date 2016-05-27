@@ -436,6 +436,25 @@ class dataset(object):
         # return data sets
         return (year_day_time,X.astype('uint8'),Y.astype('uint8'))
     
+    def arrange_frames_CCA_experiment(self,IPW_Refl_points):
+        year_day_time = IPW_Refl_points[0]
+        IPWFeatures = IPW_Refl_points[1]
+        # Load IPW frames
+        # Load ground truth
+        Y = IPWFeatures[:,-1].reshape(IPWFeatures.shape[0],1)
+        # Load Refl. frames
+        ReflFeatures = IPW_Refl_points[2]
+        # Stack frames into volumes
+        IPWFeatures = IPWFeatures[:,:-1].reshape(IPWFeatures.shape[0],6,33,33)
+        ReflFeatures = ReflFeatures.reshape(ReflFeatures.shape[0],6,33,33)
+        # Use frames from one hour ago, this will drip the current frame and frame at t -30
+        IPWFeatures = IPWFeatures[:,0,:,:]
+        ReflFeatures = ReflFeatures[:,0,:,:]
+        # Merge IPW and reflectivity to create volume of shape number of examples x 8 x 33 x 33
+#        X = np.concatenate((IPWFeatures,ReflFeatures),axis=1)
+        # return data sets
+        return (year_day_time,IPWFeatures.astype('uint8'),ReflFeatures.astype('uint8'))
+    
     def get_field_statistics(self,random_points):
         
         indices_i = [(x*1089,(x+1)*1089)for x in range(4) ]

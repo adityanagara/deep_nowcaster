@@ -1,0 +1,340 @@
+cuda 7.0.28 is located under /share/pkg/cuda/7.0.28
+cudnn v3_for_cuda_7.0 is located under /share/pkg/cudnn/v3_for_cuda_7.0
+python 2.7.9 is located under /share/pkg/python/2.7.9
+python 2.7.9 is located under /share/pkg/python/2.7.9
+python/2.7.9_packages/numpy 1.9.2 is located under /share/pkg/python/2.7.9_packages/numpy/1.9.2
+python 2.7.9 is located under /share/pkg/python/2.7.9
+python 2.7.9 is located under /share/pkg/python/2.7.9
+python/2.7.9_packages/numpy 1.9.2 is located under /share/pkg/python/2.7.9_packages/numpy/1.9.2
+python/2.7.9_packages/scipy 0.15.1 is located under /share/pkg/python/2.7.9_packages/scipy/0.15.1
+gcc 5.1.0 is located under /share/pkg/gcc/5.1.0
+python/2.7.9_packages/theano 0.7.0 is located under /share/pkg/python/2.7.9_packages/theano/0.7.0
+
+To run theano on GPU per http://deeplearning.net/software/theano/install.html#using-the-gpu
+you will want to create a $HOME/.theanorc file containing:
+	[global]
+	device = gpu
+	floatX = float32
+and include the following bsub option when submitting the job to LSF:
+	#BSUB -a gpuexcl_p
+
+python 2.7.9 is located under /share/pkg/python/2.7.9
+python 2.7.9 is located under /share/pkg/python/2.7.9
+python/2.7.9_packages/numpy 1.9.2 is located under /share/pkg/python/2.7.9_packages/numpy/1.9.2
+python/2.7.9_packages/pandas 0.17.1 is located under /share/pkg/python/2.7.9_packages/pandas/0.17.1
+python 2.7.9 is located under /share/pkg/python/2.7.9
+python/2.7.9_packages/lasagne 0.1 is located under /share/pkg/python/2.7.9_packages/lasagne/0.1
+Using gpu device 0: Tesla K80
+1 #include <Python.h>
+2 #include <iostream>
+3 #include <math.h>
+4 #include <numpy/arrayobject.h>
+5 #include <numpy/arrayscalars.h>
+6 #include "cuda_ndarray.cuh"
+7 //////////////////////
+8 ////  Support Code
+9 //////////////////////
+10 
+11 
+12     namespace {
+13     struct __struct_compiled_op_0fc80e98cce631ecaa526b69dd28dae1 {
+14         PyObject* __ERROR;
+15 
+16         PyObject* storage_V3;
+17 PyObject* storage_V1;
+18         
+19 
+20         __struct_compiled_op_0fc80e98cce631ecaa526b69dd28dae1() {}
+21         ~__struct_compiled_op_0fc80e98cce631ecaa526b69dd28dae1(void) {
+22             cleanup();
+23         }
+24 
+25         int init(PyObject* __ERROR, PyObject* storage_V3, PyObject* storage_V1) {
+26             Py_XINCREF(storage_V3);
+27 Py_XINCREF(storage_V1);
+28             this->storage_V3 = storage_V3;
+29 this->storage_V1 = storage_V1;
+30             
+31 
+32 
+33 
+34             this->__ERROR = __ERROR;
+35             return 0;
+36         }
+37         void cleanup(void) {
+38             __label_1:
+39 
+40 double __DUMMY_1;
+41 __label_3:
+42 
+43 double __DUMMY_3;
+44 __label_6:
+45 
+46 double __DUMMY_6;
+47 
+48             Py_XDECREF(this->storage_V3);
+49 Py_XDECREF(this->storage_V1);
+50         }
+51         int run(void) {
+52             int __failure = 0;
+53             
+54     PyObject* py_V1;
+55     
+56         PyArrayObject* V1;
+57         
+58     PyObject* py_V3;
+59      CudaNdarray * V3;
+60 {
+61 
+62     py_V1 = Py_None;
+63     {Py_XINCREF(py_V1);}
+64     
+65         V1 = NULL;
+66         
+67 {
+68 
+69     py_V3 = PyList_GET_ITEM(storage_V3, 0);
+70     {Py_XINCREF(py_V3);}
+71     
+72         assert(py_V3->ob_refcnt >= 2); // There should be at least one ref from the container object,
+73         // and one ref from the local scope.
+74 
+75         if (CudaNdarray_Check(py_V3))
+76         {
+77             //fprintf(stderr, "c_extract CNDA object w refcnt %p %i\n", py_V3, (py_V3->ob_refcnt));
+78             V3 = (CudaNdarray*)py_V3;
+79             //std::cerr << "c_extract " << V3 << '\n';
+80         
+81 
+82                 assert(V3);
+83                 Py_INCREF(py_V3);
+84             }
+85             
+86 
+87 {
+88 // Op class HostFromGpu
+89 
+90         Py_XDECREF(V1);
+91         V1 = (PyArrayObject *) CudaNdarray_CreateArrayObj(V3);
+92         if(!V1){
+93             {
+94         __failure = 5;
+95         if (!PyErr_Occurred()) {
+96             PyErr_SetString(PyExc_RuntimeError,
+97                 "Unexpected error in an Op's C code. "
+98                 "No Python exception was set.");
+99             }
+100         goto __label_5;};
+101         }
+102         __label_5:
+103 
+104 double __DUMMY_5;
+105 
+106 }
+107 __label_4:
+108 
+109         //std::cerr << "cleanup " << py_V3 << " " << V3 << "\n";
+110         //fprintf(stderr, "c_cleanup CNDA py_object w refcnt %p %i\n", py_V3, (py_V3->ob_refcnt));
+111         if (V3)
+112         {
+113             //fprintf(stderr, "c_cleanup CNDA cn_object w refcnt %p %i\n", V3, (V3->ob_refcnt));
+114             Py_XDECREF(V3);
+115         }
+116         //std::cerr << "cleanup done" << py_V3 << "\n";
+117         
+118     {Py_XDECREF(py_V3);}
+119     
+120 double __DUMMY_4;
+121 
+122 }
+123 __label_2:
+124 
+125     if (!__failure) {
+126       
+127         {Py_XDECREF(py_V1);}
+128         if (!V1) {
+129             Py_INCREF(Py_None);
+130             py_V1 = Py_None;
+131         }
+132         else if ((void*)py_V1 != (void*)V1) {
+133             py_V1 = (PyObject*)V1;
+134         }
+135 
+136         {Py_XINCREF(py_V1);}
+137 
+138         if (V1 && !PyArray_ISALIGNED((PyArrayObject*) py_V1)) {
+139             PyErr_Format(PyExc_NotImplementedError,
+140                          "c_sync: expected an aligned array, got non-aligned array of type %ld"
+141                          " with %ld dimensions, with 3 last dims "
+142                          "%ld, %ld, %ld"
+143                          " and 3 last strides %ld %ld, %ld.",
+144                          (long int) PyArray_TYPE((PyArrayObject*) py_V1),
+145                          (long int) PyArray_NDIM(V1),
+146                          (long int) PyArray_NDIM(V1) >= 3 ?
+147         PyArray_DIMS(V1)[PyArray_NDIM(V1)-3] : -1,
+148                          (long int) PyArray_NDIM(V1) >= 2 ?
+149         PyArray_DIMS(V1)[PyArray_NDIM(V1)-2] : -1,
+150                          (long int) PyArray_NDIM(V1) >= 1 ?
+151         PyArray_DIMS(V1)[PyArray_NDIM(V1)-1] : -1,
+152                          (long int) PyArray_NDIM(V1) >= 3 ?
+153         PyArray_STRIDES(V1)[PyArray_NDIM(V1)-3] : -1,
+154                          (long int) PyArray_NDIM(V1) >= 2 ?
+155         PyArray_STRIDES(V1)[PyArray_NDIM(V1)-2] : -1,
+156                          (long int) PyArray_NDIM(V1) >= 1 ?
+157         PyArray_STRIDES(V1)[PyArray_NDIM(V1)-1] : -1
+158         );
+159             {
+160         __failure = 2;
+161         if (!PyErr_Occurred()) {
+162             PyErr_SetString(PyExc_RuntimeError,
+163                 "Unexpected error in an Op's C code. "
+164                 "No Python exception was set.");
+165             }
+166         goto __label_2;}
+167         }
+168         
+169       PyObject* old = PyList_GET_ITEM(storage_V1, 0);
+170       {Py_XINCREF(py_V1);}
+171       PyList_SET_ITEM(storage_V1, 0, py_V1);
+172       {Py_XDECREF(old);}
+173     }
+174     
+175         if (V1) {
+176             Py_XDECREF(V1);
+177         }
+178         
+179     {Py_XDECREF(py_V1);}
+180     
+181 double __DUMMY_2;
+182 
+183 }
+184 
+185             
+186         if (__failure) {
+187             // When there is a failure, this code puts the exception
+188             // in __ERROR.
+189             PyObject* err_type = NULL;
+190             PyObject* err_msg = NULL;
+191             PyObject* err_traceback = NULL;
+192             PyErr_Fetch(&err_type, &err_msg, &err_traceback);
+193             if (!err_type) {err_type = Py_None;Py_INCREF(Py_None);}
+194             if (!err_msg) {err_msg = Py_None; Py_INCREF(Py_None);}
+195             if (!err_traceback) {err_traceback = Py_None; Py_INCREF(Py_None);}
+196             PyObject* old_err_type = PyList_GET_ITEM(__ERROR, 0);
+197             PyObject* old_err_msg = PyList_GET_ITEM(__ERROR, 1);
+198             PyObject* old_err_traceback = PyList_GET_ITEM(__ERROR, 2);
+199             PyList_SET_ITEM(__ERROR, 0, err_type);
+200             PyList_SET_ITEM(__ERROR, 1, err_msg);
+201             PyList_SET_ITEM(__ERROR, 2, err_traceback);
+202             {Py_XDECREF(old_err_type);}
+203             {Py_XDECREF(old_err_msg);}
+204             {Py_XDECREF(old_err_traceback);}
+205         }
+206         // The failure code is returned to index what code block failed.
+207         return __failure;
+208         
+209         }
+210     };
+211     }
+212     
+213 
+214         static int __struct_compiled_op_0fc80e98cce631ecaa526b69dd28dae1_executor(__struct_compiled_op_0fc80e98cce631ecaa526b69dd28dae1* self) {
+215             return self->run();
+216         }
+217 
+218         static void __struct_compiled_op_0fc80e98cce631ecaa526b69dd28dae1_destructor(void* executor, void* self) {
+219             delete ((__struct_compiled_op_0fc80e98cce631ecaa526b69dd28dae1*)self);
+220         }
+221         
+222 //////////////////////
+223 ////  Functions
+224 //////////////////////
+225 static PyObject * instantiate(PyObject * self, PyObject *argtuple) {
+226   assert(PyTuple_Check(argtuple));
+227   if (3 != PyTuple_Size(argtuple)){ 
+228      PyErr_Format(PyExc_TypeError, "Wrong number of arguments, expected 3, got %i", (int)PyTuple_Size(argtuple));
+229      return NULL;
+230   }
+231   __struct_compiled_op_0fc80e98cce631ecaa526b69dd28dae1* struct_ptr = new __struct_compiled_op_0fc80e98cce631ecaa526b69dd28dae1();
+232   if (struct_ptr->init( PyTuple_GET_ITEM(argtuple, 0),PyTuple_GET_ITEM(argtuple, 1),PyTuple_GET_ITEM(argtuple, 2) ) != 0) {
+233     delete struct_ptr;
+234     return NULL;
+235   }
+236   PyObject* thunk = PyCObject_FromVoidPtrAndDesc((void*)(&__struct_compiled_op_0fc80e98cce631ecaa526b69dd28dae1_executor), struct_ptr, __struct_compiled_op_0fc80e98cce631ecaa526b69dd28dae1_destructor);
+237   return thunk; }
+238 
+239 //////////////////////
+240 ////  Module init
+241 //////////////////////
+242 static PyMethodDef MyMethods[] = {
+243 	{"instantiate", instantiate, METH_VARARGS, "undocumented"} ,
+244 	{NULL, NULL, 0, NULL}
+245 };
+246 PyMODINIT_FUNC init0fc80e98cce631ecaa526b69dd28dae1(void){
+247    import_array();
+248    (void) Py_InitModule("0fc80e98cce631ecaa526b69dd28dae1", MyMethods);
+249 }
+250 
+===============================
+In file included from /share/pkg/cuda/7.0.28/include/cuda_runtime.h:62:0,
+                 from <command-line>:0:
+/share/pkg/cuda/7.0.28/include/host_config.h:105:2: error: #error -- unsupported GNU version! gcc 4.10 and up are not supported!
+ #error -- unsupported GNU version! gcc 4.10 and up are not supported!
+  ^
+In file included from /share/pkg/python/2.7.9/include/python2.7/Python.h:8:0,
+                 from mod.cu:1:
+/share/pkg/python/2.7.9/include/python2.7/pyconfig.h:1182:0: warning: "_POSIX_C_SOURCE" redefined
+ #define _POSIX_C_SOURCE 200112L
+ ^
+In file included from /share/pkg/cuda/7.0.28/include/host_config.h:151:0,
+                 from /share/pkg/cuda/7.0.28/include/cuda_runtime.h:62,
+                 from <command-line>:0:
+/usr/include/features.h:162:0: note: this is the location of the previous definition
+ # define _POSIX_C_SOURCE 200809L
+ ^
+In file included from /share/pkg/python/2.7.9/include/python2.7/Python.h:8:0,
+                 from mod.cu:1:
+/share/pkg/python/2.7.9/include/python2.7/pyconfig.h:1204:0: warning: "_XOPEN_SOURCE" redefined
+ #define _XOPEN_SOURCE 600
+ ^
+In file included from /share/pkg/cuda/7.0.28/include/host_config.h:151:0,
+                 from /share/pkg/cuda/7.0.28/include/cuda_runtime.h:62,
+                 from <command-line>:0:
+/usr/include/features.h:164:0: note: this is the location of the previous definition
+ # define _XOPEN_SOURCE 700
+ ^
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/share/pkg/python/2.7.9_packages/theano/0.7.0/lib/python2.7/site-packages/theano/__init__.py", line 98, in <module>
+    theano.sandbox.cuda.tests.test_driver.test_nvidia_driver1()
+  File "/share/pkg/python/2.7.9_packages/theano/0.7.0/lib/python2.7/site-packages/theano/sandbox/cuda/tests/test_driver.py", line 32, in test_nvidia_driver1
+    profile=False)
+  File "/share/pkg/python/2.7.9_packages/theano/0.7.0/lib/python2.7/site-packages/theano/compile/function.py", line 266, in function
+    profile=profile)
+  File "/share/pkg/python/2.7.9_packages/theano/0.7.0/lib/python2.7/site-packages/theano/compile/pfunc.py", line 511, in pfunc
+    on_unused_input=on_unused_input)
+  File "/share/pkg/python/2.7.9_packages/theano/0.7.0/lib/python2.7/site-packages/theano/compile/function_module.py", line 1466, in orig_function
+    defaults)
+  File "/share/pkg/python/2.7.9_packages/theano/0.7.0/lib/python2.7/site-packages/theano/compile/function_module.py", line 1324, in create
+    input_storage=input_storage_lists)
+  File "/share/pkg/python/2.7.9_packages/theano/0.7.0/lib/python2.7/site-packages/theano/gof/link.py", line 519, in make_thunk
+    output_storage=output_storage)[:3]
+  File "/share/pkg/python/2.7.9_packages/theano/0.7.0/lib/python2.7/site-packages/theano/gof/vm.py", line 897, in make_all
+    no_recycling))
+  File "/share/pkg/python/2.7.9_packages/theano/0.7.0/lib/python2.7/site-packages/theano/sandbox/cuda/__init__.py", line 259, in make_thunk
+    compute_map, no_recycling)
+  File "/share/pkg/python/2.7.9_packages/theano/0.7.0/lib/python2.7/site-packages/theano/gof/op.py", line 739, in make_thunk
+    output_storage=node_output_storage)
+  File "/share/pkg/python/2.7.9_packages/theano/0.7.0/lib/python2.7/site-packages/theano/gof/cc.py", line 1073, in make_thunk
+    keep_lock=keep_lock)
+  File "/share/pkg/python/2.7.9_packages/theano/0.7.0/lib/python2.7/site-packages/theano/gof/cc.py", line 1015, in __compile__
+    keep_lock=keep_lock)
+  File "/share/pkg/python/2.7.9_packages/theano/0.7.0/lib/python2.7/site-packages/theano/gof/cc.py", line 1442, in cthunk_factory
+    key=key, lnk=self, keep_lock=keep_lock)
+  File "/share/pkg/python/2.7.9_packages/theano/0.7.0/lib/python2.7/site-packages/theano/gof/cmodule.py", line 1076, in module_from_key
+    module = lnk.compile_cmodule(location)
+  File "/share/pkg/python/2.7.9_packages/theano/0.7.0/lib/python2.7/site-packages/theano/gof/cc.py", line 1354, in compile_cmodule
+    preargs=preargs)
+  File "/share/pkg/python/2.7.9_packages/theano/0.7.0/lib/python2.7/site-packages/theano/sandbox/cuda/nvcc_compiler.py", line 423, in compile_str
+    'for cmd', ' '.join(cmd))
+Exception: ('The following error happened while compiling the node', HostFromGpu(GpuCAReduce{add}{1}.0), '\n', 'nvcc return status', 1, 'for cmd', 'nvcc -shared -O3 -arch=sm_37 -m64 -Xcompiler -fno-math-errno,-Wno-unused-label,-Wno-unused-variable,-Wno-write-strings,-DCUDA_NDARRAY_CUH=11b90075e2397c684f9dc0f7276eab8f,-D NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION,-fPIC -Xlinker -rpath,/home/an67a/.theano/compiledir_Linux-2.6-el6.x86_64-x86_64-with-redhat-6.7-Santiago-x86_64-2.7.9-64/cuda_ndarray -I/home/an67a/.theano/compiledir_Linux-2.6-el6.x86_64-x86_64-with-redhat-6.7-Santiago-x86_64-2.7.9-64/cuda_ndarray -I/usr/local/cuda-7.0/include -I/share/pkg/python/2.7.9_packages/numpy/1.9.2/lib/python2.7/site-packages/numpy/core/include -I/share/pkg/python/2.7.9/include/python2.7 -I/share/pkg/python/2.7.9_packages/theano/0.7.0/lib/python2.7/site-packages/theano/sandbox/cuda -o /home/an67a/.theano/compiledir_Linux-2.6-el6.x86_64-x86_64-with-redhat-6.7-Santiago-x86_64-2.7.9-64/tmpV6c887/0fc80e98cce631ecaa526b69dd28dae1.so mod.cu -L/home/an67a/.theano/compiledir_Linux-2.6-el6.x86_64-x86_64-with-redhat-6.7-Santiago-x86_64-2.7.9-64/cuda_ndarray -L/share/pkg/python/2.7.9/lib -lpython2.7 -lcudart -lcublas -lcuda_ndarray', '[HostFromGpu(<CudaNdarrayType(float32, scalar)>)]')

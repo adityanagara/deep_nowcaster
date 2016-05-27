@@ -32,9 +32,63 @@ import os
 #plt.grid()
 #plt.show()
 
-print os.getcwd()
-nn_experiments = np.load('../output/neural_net/performance_metrics_1.pkl')
-cnn_experiments = np.load('../output/performance_metrics_2.pkl')
+#print os.getcwd()
+nn_experiments = np.load('../output/1_CNN_experiments/performance_metrics_1.pkl')
+cnn_experiments = np.load('../output/1_CNN_experiments/performance_metrics_max_pool1.pkl')
+
+
+print cnn_experiments
+
+PODs_nn = []
+PODs_cnn = []
+CSIs_nn = []
+FARs_nn = []
+FARs_cnn = []
+CSIs_cnn = []
+
+for i in range(len(cnn_experiments)):
+    PODs_cnn.append(cnn_experiments[i][0][1])
+    PODs_nn.append(nn_experiments[i][0][1])
+    FARs_nn.append(nn_experiments[i][0][2])
+    CSIs_nn.append(nn_experiments[i][0][3])
+    FARs_cnn.append(cnn_experiments[i][0][2])
+    CSIs_cnn.append(cnn_experiments[i][0][3])
+
+plt.figure()
+plt.plot(PODs_cnn,label = 'POD CNN')
+plt.plot(PODs_nn,label = 'POD NN')
+plt.plot(FARs_cnn,label = 'FAR CNN')
+plt.plot(FARs_nn,label = 'FAR NN')
+#plt.plot(CSIs_cnn,label = 'CSI CNN')
+#plt.plot(CSIs_nn,label = 'CSI NN')
+plt.title('Test scores for month June 2014')
+plt.legend()
+
+#def ground_truth_distribution():
+#    '''This script plots the distribution between rain cases and no rain cases
+#    '''
+#    base_path = '../data/TrainTest/points/'
+#    file_list = os.listdir(base_path)
+#    file_list = filter(lambda x: x[-4:] == '.pkl',file_list)
+#    arr = np.load(base_path + file_list[0])
+#    print len(arr)
+#    ground_truthes = []
+#    for a in range(len(arr)):
+#        print arr[a][2].shape
+##        ground_truthes.append(arr[a][2])
+#    
+#    return ground_truthes
+#        
+##    print file_list
+#
+#ground_truthes = ground_truth_distribution()
+#
+#print len(ground_truthes)
+
+
+
+
+
 '''
 For neural nets 
 performance_metrics[ep].append([val_acc / ctr_val,
@@ -48,29 +102,6 @@ performance_metrics[ep].append([val_acc / val_batches_ctr,
                                 val_FAR / val_batches_ctr,
                                 val_CSI / val_batches_ctr])                        
 '''
-
-print cnn_experiments
-
-PODs_nn = []
-PODs_cnn = []
-FARs_nn = []
-FARs_cnn = []
-
-for i in range(len(cnn_experiments)):
-    PODs_cnn.append(cnn_experiments[i][0][1])
-    PODs_nn.append(nn_experiments[i][0][1])
-    FARs_nn.append(nn_experiments[i][0][2])
-    FARs_cnn.append(cnn_experiments[i][0][2])
-    
-
-plt.figure()
-plt.plot(PODs_cnn,label = 'POD CNN')
-#plt.plot(PODs_nn,label = 'POD NN')
-plt.plot(FARs_cnn,label = 'FAR CNN')
-#plt.plot(FARs_nn,label = 'FAR NN')
-plt.legend()
-
-
 
 
 
