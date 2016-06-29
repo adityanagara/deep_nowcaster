@@ -15,6 +15,8 @@ import DFWnet
 import subprocess
 import ftplib
 from netCDF4 import Dataset
+import BuildDataSet
+
 
 DFW = DFWnet.CommonData()
 Months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
@@ -68,6 +70,9 @@ def find_closest_radar_data(t,files):
     '''This function finds the closest file to that particular hour'''
     hr = t[:2]
     mn = t[-2:]
+    # If there is a .nc extension in the end strip it
+    if files[0][-3:] == '.nc':
+        files = map(lambda x: x.strip('.nc'), files)
     temp_file = filter(lambda x: x[27:29] == hr,files)
     # Find the closest file to the given time stame (up to 5 minutes ahead is fine)
     if mn == '30':
@@ -86,6 +91,20 @@ def find_closest_radar_data(t,files):
     else:
         print 'WARNING: Missing File for time --> '  + t
     return file_to_return
+
+def find_closest_radar_data_averages(t,files):
+    '''This function returns the the set of files from the first 30 minutes and 
+    second 30 minutes for each hour'''
+    hr = t[:2]
+    # If there is a .nc extension in the end strip it
+    if files[0][-3:] == '.nc':
+        files = map(lambda x: x.strip('.nc'), files)
+    temp_file = filter(lambda x: x[27:29] == hr,files)
+    # Find the closest file to the given time stame (up to 5 minutes ahead is fine)
+    temp_file_first30 = filter(lambda x: int(x[-2:]) < 30,temp_file)
+    temp_file_last30 = filter(lambda x: int(x[-2:]) > 30,temp_file)
+    return temp_file_first30,temp_file_last30
+
 
 def KeepRequiredFiles(doy,yr):
     DFW.doytodate(int(yr),doy)
@@ -128,6 +147,53 @@ def ConvertToNETCDF(doy,yr,keep_files):
         # remove the raw file we only need .nc
         os.remove(file_path + raw_file)
 
+
+def cart2pol(x,y):
+    r = np.sqrt(np.power(x,2) + np.power(y,2))
+    theta = np.degrees(np.arctan2(y,x))
+    return theta,r
+
+def reflectivity_polar_to_cartesian(rad):
+    m = 100
+    # Initialize an empty array to hold the reflectivity values in the cartesian coordinates
+    gridZ = np.empty((m,m))
+    gridZ.fill(np.nan)
+
+    # Make the 150x150 km2 grid
+    gridX = np.arange(-150.0,151.0,300.0/(m-1))
+    gridY = np.arange(-150.0,151.0,300.0/(m-1))
+
+    xMesh,yMesh = np.meshgrid(gridX,gridY)
+    xMesh,yMesh = np.meshgrid(gridX,gridY)
+    
+    gridA,gridR = cart2pol(xMesh,yMesh)
+        # Get the vector of azimuth angles
+    azimuthVector = rad.variables['azimuth'][:]
+
+    # Get the range gates
+    rangeVector = rad.variables['gate'][:]
+
+    startRange = rangeVector[0]
+
+    gateWidth = np.median(np.diff(rangeVector))
+
+    startRange = startRange /1000.0
+    gateWidth = gateWidth / 1000.0
+
+    # Get the level 3 products
+    Z = rad.variables['BaseReflectivity'][:]
+    
+    for a in range(azimuthVector.size):
+        
+        I = np.less(np.abs(gridA - azimuthVector[a]),1.0)
+    
+        J = np.floor(((gridR[np.abs(gridA - azimuthVector[a]) < 1.0] - startRange)/gateWidth ))
+    
+        gridZ[I] = Z[a,tuple(J)]
+    
+    return gridZ.T
+
+
 def getNEXRADFile(doy,yr):
     '''Returns net cdf object for a particular year and day'''
     DFW.doytodate(yr,int(doy))
@@ -136,21 +202,70 @@ def getNEXRADFile(doy,yr):
     files = filter(lambda x: x[-3:] == '.nc',files)
     files.sort(key = lambda x: int(x[-7:-3]))
     temp_list = []
-    for f in files:
-        temp_list.append(int(f[-7:-3]))
-    print min(temp_list),max(temp_list)
-#    rad = Dataset(NEXRAD_Folder  + os.sep + files[t])
+    time_index = ['{0}{1}'.format(str(x).zfill(2),str(y).zfill(2)) for x in range(24) for y in [0,30]]
+    for t in range(48):
+        temp_file = find_closest_radar_data_averages(time_index[t],files)
+        print temp_file[1]
+#    for f in files:
+#        rad = Dataset(NEXRAD_Folder  + os.sep + f)
+#        Z = reflectivity_polar_to_cartesian(rad)
+#        print Z.shape
+#    print min(temp_list),max(temp_list)
 #    return files[t],rad
 
+def get30minuteaverages(doy,yr):
+    '''Returns the average reflectivity for each 30 minute interval'''
+    DFW.doytodate(yr,int(doy))
+    half_hour_means = np.zeros((48,100,100))
+    
+    NEXRAD_Folder = '../data/RadarData/NEXRAD/20'+ str(yr) + os.sep  + Months[int(DFW.mon) - 1] + DFW.day
+    files = os.listdir(NEXRAD_Folder)
+    files = filter(lambda x: x[-3:] == '.nc',files)
+    files.sort(key = lambda x: int(x[-7:-3]))
+#    time_index = ['{0}{1}'.format(str(x).zfill(2),str(y).zfill(2)) for x in range(24) for y in [0,30]]
+    time_index = ['{0}00'.format(str(x).zfill(2)) for x in range(24)]
+    hour_ctr = 0
+    for t in range(24):
+        temp_files = find_closest_radar_data_averages(time_index[t],files)
+    
+        for bl in range(len(temp_files)):
+            half_hour_array = np.zeros((len(temp_files[bl]),100,100))
+            for ctr,fl in enumerate(temp_files[bl]):
+                rad = Dataset(NEXRAD_Folder  + os.sep + fl + '.nc')
+                Z = reflectivity_polar_to_cartesian(rad)
+                half_hour_array[ctr] = Z
+            half_hour_array[np.isnan(half_hour_array)] = 0.
+            half_hour_array[half_hour_array < 0.0] = 0.0
+            half_hour_means[hour_ctr,...] = np.mean(half_hour_array,axis = 0)
+            hour_ctr+=1
+    return half_hour_means
+
+def det30minuteDecimated(doy,yr):
+    '''Returns net cdf object for a particular year and day'''
+    DFW.doytodate(yr,int(doy))
+    day_array = np.zeros((48,100,100))
+    NEXRAD_Folder = '../data/RadarData/NEXRAD/20'+ str(yr) + os.sep  + Months[int(DFW.mon) - 1] + DFW.day
+    files = os.listdir(NEXRAD_Folder)
+    files = filter(lambda x: x[-3:] == '.nc',files)
+    files.sort(key = lambda x: int(x[-7:-3]))
+    temp_list = []
+    time_index = ['{0}{1}'.format(str(x).zfill(2),str(y).zfill(2)) for x in range(24) for y in [0,30]]
+    for t in range(48):
+        temp_file = find_closest_radar_data(time_index[t],files)
+        rad = Dataset(NEXRAD_Folder  + os.sep + temp_file + '.nc')
+        Z = reflectivity_polar_to_cartesian(rad)
+        Z[np.isnan(Z)] = 0.
+        Z[Z < 0.] = 0.
+        day_array[t,...] = Z
+    return day_array
+
+    
 
 def check_refl_files(new_dir):
     file_list = os.listdir(new_dir)
     file_list = filter(lambda x: x[-3:] == '.nc',file_list)
     print 'The number of files in dir: %s = %d'%(new_dir,len(file_list))
     
-    
-    
-
 def main(yr):
     initial = os.getcwd()
     order_dict = {}
@@ -166,10 +281,13 @@ def main(yr):
         storm_dates = np.delete(storm_dates,idx2,axis = 0)
         idx3 = np.where(np.all(storm_dates == [204 , 14 ,  7 , 23],axis=1))[0][0]
         storm_dates = np.delete(storm_dates,idx3,axis = 0)
+        idx4 = np.where(np.all(storm_dates == [142 , 14 ,  5 , 22],axis=1))[0][0]
+        storm_dates = np.delete(storm_dates,idx4,axis = 0)
     elif yr == 15:
         storm_dates = np.load('../data/storm_dates_2015.npy').astype('int')
         storm_dates = storm_dates
     for d in storm_dates:
+        print d
         DFW.doytodate(int(yr),d[0])
         new_dir = '../data/RadarData/NEXRAD/20' + str(yr) + os.sep + Months[int(DFW.mon) -1] + DFW.day
 #        if not os.path.exists(new_dir):
@@ -185,13 +303,15 @@ def main(yr):
 ##        file_path = '../data/RadarData/NEXRAD/20' + str(yr) + os.sep + Months[int(DFW.mon) -1] + DFW.day + os.sep
 ##        nexrad_files = os.listdir(file_path)
 #        ConvertToNETCDF(d[0],yr,nexrad_files)
-        check_refl_files(new_dir)
-        getNEXRADFile(d[0],yr)
-        
-        
-
+#        check_refl_files(new_dir)
+        decimated = det30minuteDecimated(d[0],yr)        
+#        averages = get30minuteaverages(d[0],yr)
+        np.save('../data/RadarData/Decimated/' +str(d[1]) + str(d[0]) + 'refl_decimated.npy',decimated)
+#        np.save('../data/RadarData/Averages/' + str(d[1]) + str(d[0]) + 'refl_averages.npy',averages)
 
 if __name__ == '__main__':
     yr = [14,15]
+    data_builder = BuildDataSet.dataset(num_points = 500)
+    pixels = data_builder.sample_random_pixels()
     for y in yr:
         main(y)

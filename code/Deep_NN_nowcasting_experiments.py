@@ -14,6 +14,7 @@ import lasagne
 import re
 import os
 from lasagne.layers import dnn
+
 from lasagne.regularization import regularize_layer_params, l2, l1
 
 import cPickle as pkl
@@ -208,10 +209,6 @@ def build_2layer_cnn_maxpool(input_var = None):
             b=lasagne.init.Constant(.1),
             pad = 'full'
         )
-    
-#    l_maxpool1 = lasagne.layers.Pool2DLayer(l_conv1,
-#                                            (2,2),
-#                                            stride=1)
     l_maxpool1 = dnn.MaxPool2DDNNLayer(l_conv1,(2,2))
         
     l_conv2 = dnn.Conv2DDNNLayer(
@@ -225,9 +222,6 @@ def build_2layer_cnn_maxpool(input_var = None):
             pad = 'full'
         )
     
-#    l_maxpool2 = lasagne.layers.Pool2DLayer(l_conv2,
-#                                            (2,2),
-#                                            stride=1)
     l_maxpool2 = dnn.MaxPool2DDNNLayer(l_conv2,(2,2))
         
     l_hidden1 = lasagne.layers.DenseLayer(
@@ -244,6 +238,56 @@ def build_2layer_cnn_maxpool(input_var = None):
             nonlinearity=lasagne.nonlinearities.softmax)
     
     return network,l_hidden1
+
+def build_2layer_cnn_maxpool_2(input_var = None):
+    
+#    from lasagne.layers import Conv2DLayer, MaxPool2DLayer
+    print('Training 2 layer CNN-max pool network!!')
+    # Define the input variable which is 4 frames of IPW fields and 4 frames of 
+    # reflectivity fields
+    l_in = lasagne.layers.InputLayer(shape=(None,8,33,33),
+                                        input_var=input_var)
+                                        
+    l_conv1 = dnn.Conv2DDNNLayer(
+            l_in,
+            num_filters=16,
+            filter_size=(5, 5),
+            stride=(1, 1),
+            nonlinearity=lasagne.nonlinearities.rectify,
+            W=lasagne.init.HeUniform(),
+            b=lasagne.init.Constant(.1),
+            pad = 'full'
+        )
+    l_maxpool1 = dnn.MaxPool2DDNNLayer(l_conv1,(2,2))
+        
+    l_conv2 = dnn.Conv2DDNNLayer(
+            l_maxpool1,
+            num_filters=32,
+            filter_size=(5, 5),
+            stride=(1, 1),
+            nonlinearity=lasagne.nonlinearities.rectify,
+            W=lasagne.init.HeUniform(),
+            b=lasagne.init.Constant(.1),
+            pad = 'full'
+        )
+    
+    l_maxpool2 = dnn.MaxPool2DDNNLayer(l_conv2,(2,2))
+        
+    l_hidden1 = lasagne.layers.DenseLayer(
+            lasagne.layers.dropout(l_maxpool2,p=0.4),
+            num_units=100,
+            nonlinearity=lasagne.nonlinearities.sigmoid,
+            W=lasagne.init.HeUniform(),
+            b=lasagne.init.Constant(.1)
+        )
+        
+    network = lasagne.layers.DenseLayer(
+            l_hidden1,
+            num_units=2,
+            nonlinearity=lasagne.nonlinearities.softmax)
+    
+    return network,l_hidden1
+
 
 
 
@@ -288,7 +332,7 @@ def conv_net(tr_block,val_block,num_epochs,exp_no):
     # Model
     input_var = T.tensor4('inputs')
     target_var = T.ivector('targets')
-    net,l1_hidden = build_2layer_cnn_maxpool(input_var)
+    net,l1_hidden = build_2layer_cnn_maxpool_2(input_var)
     l2_penelty = regularize_layer_params(l1_hidden,l2)
     prediction = lasagne.layers.get_output(net)
     loss = lasagne.objectives.categorical_crossentropy(prediction, target_var)
@@ -369,12 +413,12 @@ def conv_net(tr_block,val_block,num_epochs,exp_no):
         
         performance_metrics[ep].append([val_acc / val_batches_ctr,val_POD / val_batches_ctr,val_FAR / val_batches_ctr,val_CSI / val_batches_ctr])
         if (ep+ 1) % 10 == 0:
-            network_file_name = '2_CNN_layer_max_pool'
+            network_file_name = '2_CNN_layer_max_pool_2'
             network_file = file('../output/'+ network_file_name + '_' + str(exp_no) +'_' + str(ep + 1) + '.pkl','wb')
             pkl.dump(net,network_file,protocol = pkl.HIGHEST_PROTOCOL)
             network_file.close()
     
-            f1 = file('../output/performance_metrics_2layer_maxpool' + str(exp_no) + '.pkl','wb')
+            f1 = file('../output/performance_metrics_2layer_maxpool_2_' + str(exp_no) + '.pkl','wb')
             pkl.dump(performance_metrics,f1,protocol = pkl.HIGHEST_PROTOCOL)
             f1.close()
 

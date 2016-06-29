@@ -39,7 +39,7 @@ def plot_conv_weights(layer, figsize=(6, 6)):
             if i >= shape[0]:
                 break
             axes[r, c].imshow(W[i, feature_map], cmap='gray',
-                              interpolation='none')
+                              interpolation='none',origin="lower")
     return plt
 
 conv_plot = plot_conv_weights(network_file[0],figsize = (8,8))

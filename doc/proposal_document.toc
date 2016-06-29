@@ -1,0 +1,32 @@
+\contentsline {FrontMatter}{\MakeTextUppercase {Acknowledgments}}{iii}
+\contentsline {FrontMatter}{\MakeTextUppercase {\uppercase {Abstract}}}{iv}
+\contentsline {FrontMatter}{\MakeTextUppercase {List of Tables}}{viii}
+\contentsline {FrontMatter}{\MakeTextUppercase {List of Figures}}{ix}
+\contentsline {Chapter}{\numberline {1.}\MakeTextUppercase {Introduction}}{1}
+\contentsline {section}{\numberline {1.1}Precipitation Nowcasting}{2}
+\contentsline {section}{\numberline {1.2}Proposal Organization}{6}
+\contentsline {Chapter}{\numberline {2.}\MakeTextUppercase {Background}}{8}
+\contentsline {section}{\numberline {2.1}Mechanisms of Precipitation}{8}
+\contentsline {section}{\numberline {2.2}Measuring Atmospheric Water Vapor}{10}
+\contentsline {subsection}{\numberline {2.2.1}GPS Meteorology Technique}{12}
+\contentsline {subsection}{\numberline {2.2.2}GAMIT Software}{16}
+\contentsline {subsection}{\numberline {2.2.3}IPW Normalization}{17}
+\contentsline {subsection}{\numberline {2.2.4}Multiquadric Interpolation}{18}
+\contentsline {subsection}{\numberline {2.2.5}IPW Field Generation}{19}
+\contentsline {section}{\numberline {2.3}Measuring Rainfall}{20}
+\contentsline {Chapter}{\numberline {3.}\MakeTextUppercase {Data Set}}{24}
+\contentsline {section}{\numberline {3.1}Experimental Data Set}{27}
+\contentsline {section}{\numberline {3.2}Preliminary Data Analysis}{27}
+\contentsline {Chapter}{\numberline {4.}\MakeTextUppercase {Initial Learning Results}}{32}
+\contentsline {section}{\numberline {4.1}Problem Setup}{32}
+\contentsline {section}{\numberline {4.2}Training and Validation}{34}
+\contentsline {section}{\numberline {4.3}The Naive Bayes Classifier }{34}
+\contentsline {section}{\numberline {4.4}Random Forest Classifier}{35}
+\contentsline {section}{\numberline {4.5}Nowcasting Performance Results}{37}
+\contentsline {Chapter}{\numberline {5.}\MakeTextUppercase {Discussion, Proposed Work, Thesis Timeline}}{42}
+\contentsline {section}{\numberline {5.1}Proposed Work}{42}
+\contentsline {section}{\numberline {5.2}Expected Contributions}{43}
+\contentsline {section}{\numberline {5.3}Timeline}{45}
+\setcounter {tocdepth}{0}
+\contentsline {OnlyAppendix}{\MakeTextUppercase {DFW PRECIPITABLE WATER VAPOR, REFLECTIVITY NETWORK}}{46}
+\contentsline {BackMatter}{\MakeTextUppercase {Bibliography}}{48}
