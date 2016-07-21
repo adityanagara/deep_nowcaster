@@ -13,3 +13,5 @@ logs/
 *.pem
 papers/
 .ipynb_checkpoints
+*.h5
+*.mat
