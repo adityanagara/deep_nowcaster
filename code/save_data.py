@@ -4,7 +4,9 @@ Created on Mon Jul  6 09:25:19 2015
 
 @author: adityanagarajan
 This script takes all the IPW values for the entire year from each day csv file
-and dumps it into a single numpy array. 
+and dumps it into a single numpy array. The csv files are available on the emmy9 server
+and open to the public. 
+TODO: Documentation for the data set on emmy9. 
 """
 
 import  numpy as np

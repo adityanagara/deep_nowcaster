@@ -165,11 +165,28 @@ class BuildNowcaster():
             if save_fige:
                 plt.savefig('output/prediction_movies/Plot_' + str(x_) + '.png')
 
-        
 
+    def plot_ipw_refl_fields_overlap(self,gridIPW,gridZ):
+        m = 100
+        gridX = np.arange(-150.0,151.0,300.0/(m-1))
+        gridY = np.arange(-150.0,151.0,300.0/(m-1))
+        xMesh,yMesh = np.meshgrid(gridX,gridY)
+        gridZ = np.ma.array(gridZ, mask=np.isnan(gridZ))
+        plt.figure()
+        plt.pcolor(gridX,gridY,gridIPW,cmap='gist_ncar', vmin=-4.0, vmax=4.0)
+        cbar = plt.colorbar()
+        cbar.set_label('Normalized IPW vals')
         
-        
-        
+        plt.pcolor(gridX,gridY,gridZ,cmap='jet', vmin=10, vmax=60)
+        cbar = plt.colorbar()
+        cbar.set_label('Radar reflectivity')
+        plt.grid()
+        plt.xlim((-150.0,150.0))
+        plt.ylim((-150.0,150.0))
+        plt.xlabel('Easting (km)')
+        plt.ylabel('Northing (km)')
+        plt.show()
+
 
 
 '''

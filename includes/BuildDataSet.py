@@ -10,12 +10,18 @@ import numpy as np
 import random
 import getpass
 import re 
+import ftplib
+import subprocess
 
 '''
 This package deals with building data sets for training a machine learning
 based nowcasting system. This means we can build 4 frames of IPW and 4 frames
 of reflectivity for each sampled point. 
 '''
+def cart2pol(x,y):
+    r = np.sqrt(np.power(x,2) + np.power(y,2))
+    theta = np.degrees(np.arctan2(y,x))
+    return theta,r
 
 class dataset(object):
     '''This class builds the data set given the pixel points'''
@@ -32,6 +38,8 @@ class dataset(object):
     def sort_IPW_refl_files(self,yr):
         # get all the files in the dataset folder
         files = os.listdir(self.get_data_path(yr))
+        
+        files = filter(lambda x: 'img' not in x,files)
         
         # Filter based on IPW and reflectivity files
         IPWfiles = filter(lambda x: x[:7] == 'IPWdata' and re.findall('\d+',x)[0] == str(yr),files)
@@ -100,10 +108,12 @@ class dataset(object):
         '''Converts the field array to grey scale image
         input: 100 x 100 ipw field, dtype = float
         output: 100 x 100 greyscale image, dtype = int 64'''
-        map_ipw_array = np.linspace(-4,4,256,dtype='int')
-        new_array_ipw = np.zeros((100,100),dtype='int')
+        map_ipw_array = np.linspace(-4,4,256,dtype='float')
+        new_array_ipw = np.zeros(arr.shape,dtype='int')
         for i in range(arr.shape[0]):
             for j in range(arr.shape[0]):
+                if arr[i,j] < -4.0 or arr[i,j] > 4.0:
+                    print 'value out of bounds %f'%arr[i,j]
                 new_array_ipw[i,j] = np.argmin(np.abs(arr[i,j] - map_ipw_array))
         return new_array_ipw
     
@@ -111,7 +121,7 @@ class dataset(object):
         '''Converts the field array to grey scale image
         input: 100 x 100 reflectivity field, dtype = float
         output: 100 x 100 greyscale image, dtype = int 64'''
-        map_refl_array = np.linspace(0,90,256,dtype='int')
+        map_refl_array = np.linspace(0,90,256,dtype='float')
         arr[np.isnan(arr)] = 0
         arr[arr<0] = 0
         new_array_refl = np.zeros((100,100),dtype='int')
@@ -485,27 +495,149 @@ class dataset(object):
             ipw_refl_stats[:,ix + 12] = np.std(data[:,indices_r[ix][0]:indices_r[ix][1]],axis = 1)
         # redurn the array of shape (num_examples,17)
         return ipw_refl_stats
+
+
+class reflectivity_fields(object):
+    def FTPNEXRADfile(self,mon,day,yr,order_id):
+        '''Downloads a reflectivity file from the NCDC database'''
+        file_to_get = 'NWS_NEXRAD_NXL3_KFWS_20' +yr + mon + day + '000000_20' + yr + mon + day + '235959.tar.gz'
+        ftp_NEXRAD = ftplib.FTP('ftp.ncdc.noaa.gov','anonymous','adi@gmail.com')  
+        ftp_NEXRAD.cwd('pub/has' + os.sep + order_id + os.sep)
+        file_list = ftp_NEXRAD.nlst()
+        if file_to_get in file_list:
+            print 'We Going to get that file: ' + file_to_get
+            gfile = open(file_to_get,'wb')
+            ftp_NEXRAD.retrbinary('RETR ' + file_to_get,gfile.write)
+            gfile.close()
+        else:
+            print 'FATAL: File not found ' +  file_to_get
+        ftp_NEXRAD.close()
+        subprocess.call(['tar','-xvzf',file_to_get])
+        subprocess.call(['rm',file_to_get])
     
+    def keepLevel3files(self,folder_path):
+        '''This function only keeps the level 3 NEXRAD files and deletes
+        the rest given a particular folder.'''
+        file_list = os.listdir(folder_path)
+        delete_files = filter(lambda x: x[:18] != 'KFWD_SDUS54_N0RFWS',file_list)
+        for df in delete_files:
+            os.remove(folder_path + os.sep + df)
     
+    def ConvertToNETCDF(self,folder_path):
+        '''Use the java toolsUI-4.6.jar to convert to .nc files. Takes a folder
+        path of raw files and dumps into same folder but removes original file'''
+        java_script = 'toolsUI-4.6.jar'
+        ucar = 'ucar.nc2.FileWriter'
+        keep_files = os.listdir(folder_path)
+        for raw_file in keep_files:
+            temp_in = folder_path + raw_file
+            temp_out = folder_path + raw_file + '.nc'
+            subprocess.call(['java','-classpath',java_script,ucar,'-in',temp_in,'-out',temp_out,])
+            # remove the raw file we only need .nc
+            os.remove(folder_path + raw_file)
+
     
+    def reflectivity_polar_to_cartesian(self,rad):
+        '''Given a nexrad dataset object return the cartesian plot 
+        of the reflectivity field'''
+        m = 100
+        # Initialize an empty array to hold the reflectivity values in the cartesian coordinates
+        gridZ = np.empty((m,m))
+        gridZ.fill(np.nan)
+        # Make the 150x150 km2 grid
+        gridX = np.arange(-150.0,151.0,300.0/(m-1))
+        gridY = np.arange(-150.0,151.0,300.0/(m-1))
+
+        xMesh,yMesh = np.meshgrid(gridX,gridY)
+        xMesh,yMesh = np.meshgrid(gridX,gridY)
     
+        gridA,gridR = cart2pol(xMesh,yMesh)
+        # Get the vector of azimuth angles
+        azimuthVector = rad.variables['azimuth'][:]
+
+        # Get the range gates
+        rangeVector = rad.variables['gate'][:]
+
+        startRange = rangeVector[0]
+
+        gateWidth = np.median(np.diff(rangeVector))
+
+        startRange = startRange /1000.0
+        gateWidth = gateWidth / 1000.0
+
+        # Get the level 3 products
+        Z = rad.variables['BaseReflectivity'][:]
+    
+        for a in range(azimuthVector.size):
+        
+            I = np.less(np.abs(gridA - azimuthVector[a]),1.0)
+    
+            J = np.floor(((gridR[np.abs(gridA - azimuthVector[a]) < 1.0] - startRange)/gateWidth ))
+    
+            gridZ[I] = Z[a,tuple(J)]
+    
+        return gridZ.T
+
+# Test case
+
+def test_ipw_converter():
+    data_builder = dataset()
+    ipw_array = np.linspace(-5.,5.,10000).reshape(100,100)
+    refl_array = np.linspace(0.,90.,10000).reshape(100,100)
+    ipw_img = data_builder.convert_IPW_img(ipw_array)
+    for a in range(ipw_img.shape[0]):
+        print ipw_img[a,:]
+        print ipw_array[a,:]
+
+def test_refl_converter():
+    data_builder = dataset()
+    refl_array = np.linspace(0.,90.,10000).reshape(100,100)
+    refl_img = data_builder.convert_reflectivity_img(refl_array)
+    for a in range(refl_img.shape[0]):
+        print refl_img[a,:]
+        print refl_array[a,:]
+
+
+def convert_fields_to_images():
+    '''Convert the ipw and reflectivity field arrays to gray scale image 
+    arrays'''
+    data_builder = dataset()
+    storm_dates_all = {}
+    for yr in [14,15]:
+        storm_dates_all[yr] = data_builder.load_storm_days(yr)
+        doy_strings = data_builder.club_days(storm_dates_all[yr])
+        days_in_sorted = doy_strings.keys()
+        days_in_sorted.sort()
+        ipw_files,refl_files = data_builder.sort_IPW_refl_files(yr)
+        ipw_files = map(lambda x: '../data/dataset/20' + str(yr) + os.sep + x,ipw_files)
+        refl_files = map(lambda x: '../data/dataset/20' + str(yr) + os.sep + x,refl_files)
+        for i,r in zip(ipw_files,refl_files):
+            ipw_array = np.load(i)
+            refl_array = np.load(r)
+            ipw_img_array = data_builder.convert_IPW_img(ipw_array)
+            refl_img_array = data_builder.convert_reflectivity_img(refl_array)
+            
+            print ipw_img_array.shape
+            print refl_img_array.shape
+            
+            ipw_img_file = i.split('/')[-1].split('.')[0] + '_img' + '.npy'
+            refl_img_file = r.split('/')[-1].split('.')[0] + '_img' + '.npy'
+            
+            print '../data/dataset/20' + str(yr) + os.sep + ipw_img_file
+            print '../data/dataset/20' + str(yr) + os.sep + refl_img_file
+            
+            np.save('../data/dataset/20' + str(yr) + os.sep + ipw_img_file,ipw_img_array)
+            np.save('../data/dataset/20' + str(yr) + os.sep + refl_img_file,refl_img_array)
 
         
+    
 
+def main():
+#    test_ipw_refl_converter()
+#    test_refl_converter()
+    convert_fields_to_images()
+    
+    
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+if __name__ == '__main__':
+    main()

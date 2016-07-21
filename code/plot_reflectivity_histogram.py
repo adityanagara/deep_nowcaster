@@ -4,7 +4,8 @@ Created on Tue Feb  2 12:45:40 2016
 
 @author: adityanagarajan
 purpose: This code generates the histogram of reflectivity for the storm cases 
-in 2014
+in 2014. This is to check to see if the average 30 minute reflectivity histograms 
+are from the same distribution of the decimated 30 minute NEXRAD files. 
 """
 
 import BuildDataSet
