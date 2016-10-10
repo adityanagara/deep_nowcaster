@@ -8,13 +8,14 @@
 \contentsline {figure}{\numberline {2.2}{\ignorespaces Basic mechanisms of precipitation - warm moist air uplifted by or into colder air. On the left is a cold front leading to convective lift and thunderstorms. On the right is a warm front leading to dynamic lift and stratiform rain. Figure from www.physicalgeography.net.\relax }}{10}
 \addvspace {10\p@ }
 \contentsline {figure}{\numberline {3.1}{\ignorespaces GPS and ASOS stations within the KFWS 230 km coverage range.\relax }}{25}
-\contentsline {figure}{\numberline {3.2}{\ignorespaces Mean IPW for each month for 4 highest and 4 lowest stations. The height is measured as the Geodic height in meters.\relax }}{29}
-\contentsline {figure}{\numberline {3.3}{\ignorespaces IPW histograms for each season for the left: lowest station TXBX and right: highest station TXC3 (right).\relax }}{30}
-\contentsline {figure}{\numberline {3.4}{\ignorespaces Reflectivity fields overlayd onto IPW fields for three storms left: May 8th, center: July 17th and right: August 29th).\relax }}{31}
+\contentsline {figure}{\numberline {3.2}{\ignorespaces Mean IPW for each month for 4 highest and 4 lowest stations. The height is measured as the Geodic height in meters.\relax }}{31}
+\contentsline {figure}{\numberline {3.3}{\ignorespaces IPW histograms for each season for the left: lowest station TXBX and right: highest station TXC3 (right).\relax }}{32}
+\contentsline {figure}{\numberline {3.4}{\ignorespaces Reflectivity fields overlayd onto IPW fields for three storms left: May 8th, center: July 17th and right: August 29th).\relax }}{33}
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {4.1}{\ignorespaces 1500 Uniformly sampled pixels which can have a 33 x 33 grid around it. The center points surrounding the radar were left out as this area is prone to clutter and noise\relax }}{33}
-\contentsline {figure}{\numberline {4.2}{\ignorespaces Average precision score for (a) Gaussian Naive Bayes Classifier (b) Random Forest Classifier.\relax }}{40}
-\contentsline {figure}{\numberline {4.3}{\ignorespaces $f_1$ score for each train validation set.\relax }}{41}
-\contentsline {figure}{\numberline {4.4}{\ignorespaces Relative variable importance measured by random forest classifier.\relax }}{41}
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {A.1}{\ignorespaces GPS stations and ASOS ststions table.\relax }}{47}
+\contentsline {figure}{\numberline {5.1}{\ignorespaces 1500 Uniformly sampled pixels which can have a 33 x 33 grid around it. The center points surrounding the radar were left out as this area is prone to clutter and noise\relax }}{40}
+\contentsline {figure}{\numberline {5.2}{\ignorespaces Average precision score for (a) Gaussian Naive Bayes Classifier (b) Random Forest Classifier.\relax }}{44}
+\contentsline {figure}{\numberline {5.3}{\ignorespaces $f_1$ score for each train validation set.\relax }}{45}
+\contentsline {figure}{\numberline {5.4}{\ignorespaces Relative variable importance measured by random forest classifier.\relax }}{46}
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {A.1}{\ignorespaces GPS stations and ASOS ststions table.\relax }}{52}

@@ -33,20 +33,19 @@ sites = np.loadtxt('/home/aditya/UMASS/RINEXmetgen/SupportFiles/KFWS_GPS_ASOS_lo
 
 def build_met_array(yr,doy):
     columns = ['site']
-    columns.extend(['{0}:{1}'.format(x,y) for x in range(24) for y in [15,45]])
+    columns.extend(['{0}:{1}'.format(x,y) for x in range(24) for y in [00,30]])
     writeData = pd.DataFrame(columns=columns)
     writeDataPres = pd.DataFrame(columns = columns)
     writeDataTemp = pd.DataFrame(columns=columns)
 
     i=0
-    print '-'*30
     for s in sites:
-    
-        base_path = '/home/aditya/UMASS/DFWnetDB' + os.sep + s[-1] + '/20' + str(yr) + os.sep +doy  + os.sep + 'met_'+ s[0] + '.' + str(yr)[-2:] + doy
-        #base_path = '/Users/adityanagarajan/Summer_2015/ConvectiveInitiation/GAMIT/TxDOT/net1/met_okar.14128'
-#        print base_path
+        base_path = '/home/aditya/UMASS/DFWnetwork' + os.sep + s[-1] + '/20' + str(yr) + os.sep + doy  + os.sep + 'met_'+ s[0] + '.' + str(yr)[-2:] + doy
         if os.path.exists(base_path):
             metData = np.loadtxt(base_path,dtype=np.float,skiprows=4)
+            # Only take values from the current day therw will be one value 
+            # in the end of the file which contains a measurement from the 
+            # next day
             metData = metData[metData[:,1] == float(doy),:]
             if metData[:,8].shape[0] > 47:
                 '''
@@ -55,7 +54,6 @@ def build_met_array(yr,doy):
                 Header:
                 site 00:15,00:45,01:15,01:45....
                 '''
-                print metData[:,8].shape
                 temp_list = [s[0]]
                 temp_list.extend(map(lambda x: '%.2f'%x, metData[:,8]))
                 writeData.loc[i] = temp_list
@@ -67,14 +65,13 @@ def build_met_array(yr,doy):
                 writeDataTemp.loc[i] = temp_list
                 i+=1
             else:
-                print 'Full data NA: ' + base_path
+                print 'FATAL: DataGaps ' + base_path + ' ' + s[0]
                 temp_list = [s[0]]
                 temp_list.extend([-9.9]*48)
                 writeData.loc[i] = temp_list
-                print 'error missing data for ' + s[0]
                 i+=1
         else:
-            print 'File not found ' + base_path
+            print 'FATAL: FileNotFound ' + base_path
             temp_list = [s[0]]
             temp_list.extend([-9.9]*48)
             writeData.loc[i] = temp_list
@@ -86,10 +83,9 @@ def build_met_array(yr,doy):
     writeDataPres.to_csv(out_path + 'Pressure' + os.sep + 'PR' + '20' + str(yr) + str(d.tm_mon).zfill(2) + str(d.tm_mday).zfill(2) + '.csv',index=False)
     writeDataTemp.to_csv(out_path + 'Temperature' + os.sep +  'Temp' +'20' + str(yr) + str(d.tm_mon).zfill(2) + str(d.tm_mday).zfill(2) + '.csv',index=False)
 
-
 if __name__ ==  '__main__':
-    yr = 15
-    doy_list = [str(x) for x in range(121,243)]
+    yr = 16
+    doy_list = [str(x) for x in range(122,214)]
     for doy in doy_list:
         build_met_array(yr,doy)    
     

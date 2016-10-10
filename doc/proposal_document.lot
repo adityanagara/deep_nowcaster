@@ -6,9 +6,10 @@
 \addvspace {10\p@ }
 \contentsline {table}{\numberline {2.1}{\ignorespaces Reflectivity as a function of median drop size diameter and rainfall rate.\relax }}{22}
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {3.1}{\ignorespaces Weather anomaly days.\relax }}{28}
+\contentsline {table}{\numberline {3.1}{\ignorespaces Weather anomaly days\relax }}{28}
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {4.1}{\ignorespaces Performance metrics on a cross-validation set using the two classifiers.\relax }}{39}
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {5.1}{\ignorespaces Timeline\relax }}{45}
-\contentsline {table}{\numberline {A.1}{\ignorespaces Long baseline stations.\relax }}{46}
+\contentsline {table}{\numberline {5.1}{\ignorespaces Performance metrics on a cross-validation set using the two classifiers.\relax }}{45}
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {6.1}{\ignorespaces Timeline\relax }}{50}
+\contentsline {table}{\numberline {A.1}{\ignorespaces Long baseline stations.\relax }}{51}

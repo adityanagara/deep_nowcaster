@@ -7,6 +7,8 @@
 \usepackage{algpseudocode}
 \usepackage{multirow}
 \usepackage{subfig}
+\usepackage{amssymb}
+
 
 \begin{document}
 
@@ -348,7 +350,7 @@ dBZ &$D_{0}$ (mm) & $R$ (mm/hr) \\
 
 The data set we will use for our nowcasting experiments comes from the Dallas-Fort-Worth (DFW) region. Part of the infamous U.S. "tornado alley", DFW spring and summer weather is dominated by convective thunderstorms that move in lines generally from west to east through the region. We choose the DFW region because we understand its climatology (through CASA's more than 15 years of operating networks of weather radars in tornado alley, first in Oklahoma and now in DFW) and because the DFW region has a high density of GPS receivers and weather stations whose data are publicly available on-line for our use.
 
-We take as the center of our region the NWS KFWS NEXRAD radar in Fort-Worth Texas.\footnote{http://radar.weather.gov/radar.php?rid=fws} Within the 230 km coverage range of the radar we identified 44 Regional Reference Points, i.e., high performance dual-frequency GPS receivers. These GPS receivers, which are operated by the Texas Dept. of Transportation (TxDOT)\footnote{http://www.txdot.gov/inside-txdot/division/information-technology/gps.html}, were deployed to provide precise position information for Geodetic studies. As such these GPS receivers do not have collocated weather stations. For the weather data (surface temperature, pressure, and relative humidity) required for IPW estimation, we used data from the network of Automated Surface Observation Stations (ASOS) operated by NOAA NWS\footnote{http://www.nws.noaa.gov/asos/}. Figure \ref{fig:GPS_ASOS_Loc} shows the relative locations of the GPS receivers and ASOS stations within the 230 km coverage range of the KFWS radar. Table \ref{table:GPS_ASOS_table} in the Appendix gives the locations and heights of the the GPS receivers and ASOS weather stations.
+We analyze 2 years of storm data (2014 - 2015) during the spring summer storm season in the DFW region which consists of days between May to August. We take as the center of our region the NWS KFWS NEXRAD radar in Fort-Worth Texas.\footnote{http://radar.weather.gov/radar.php?rid=fws} Within the 230 km coverage range of the radar we identified 44 Regional Reference Points, i.e., high performance dual-frequency GPS receivers. These GPS receivers, which are operated by the Texas Dept. of Transportation (TxDOT)\footnote{http://www.txdot.gov/inside-txdot/division/information-technology/gps.html}, were deployed to provide precise position information for Geodetic studies. As such these GPS receivers do not have collocated weather stations. For the weather data (surface temperature, pressure, and relative humidity) required for IPW estimation, we used data from the network of Automated Surface Observation Stations (ASOS) operated by NOAA NWS\footnote{http://www.nws.noaa.gov/asos/}. The ASOS network of weather stations provide surface meteorological variables at 5 minute resolutions. Figure \ref{fig:GPS_ASOS_Loc} shows the relative locations of the GPS receivers and ASOS stations within the 230 km coverage range of the KFWS radar. Table \ref{table:GPS_ASOS_table} in the Appendix gives the locations and heights of the the GPS receivers and ASOS weather stations.
 \begin{figure}[!t]
 \begin{center}
 \includegraphics[width = 0.8\textwidth]{GPS_ASOS_Locations.eps}
@@ -356,7 +358,7 @@ We take as the center of our region the NWS KFWS NEXRAD radar in Fort-Worth Texa
 \label{fig:GPS_ASOS_Loc}
 \end{center}
 \end{figure}
-GPS RINEX files of code range and carrier phase for the entire year of 2014 were downloaded for each of the 44 stations from databases maintained by SOPAC\footnote{http://sopac.ucsd.edu/} \cite{bock1997scripps} and CORS\footnote{http://www.ngs.noaa.gov/}\cite{snay2008continuously}. The meteorological data from the ASOS stations were obtained at 30 minute intervals for the year of 2014 from Teresa Vanhove of UCAR\footnote{http://www.suominet.ucar.edu/}. The KFWS 0.5 degree reflectivity product for the entirety of 2014 was downloaded from NCDC\footnote{https://www.ncdc.noaa.gov/data-access/radar-data}. For the long baseline stations needed for double differencing, we chose the four stations: AC20 in Girdwood Alaska, CONZ in Concepcion Chile, P019 in Fairfield, Idaho, and UNBJ at the University of New Brunswick, Canada. The closest of these stations, P019 is approximately 1500 km from the KFWS radar defining the center of the DFW GPS network. These stations were chosen to ensure that there was always at least one satellite that had a view of all of the TxDOT GPS stations and one of the baseline stations.
+GPS RINEX files of code range and carrier phase for the storm periods of 2014 - 2016 were downloaded for each of the 44 stations from databases maintained by SOPAC\footnote{http://sopac.ucsd.edu/} \cite{bock1997scripps} and CORS\footnote{http://www.ngs.noaa.gov/}\cite{snay2008continuously}. The meteorological data from the ASOS stations were obtained at 30 minute intervals for the year of 2014 from Teresa Vanhove of UCAR\footnote{http://www.suominet.ucar.edu/}. The KFWS 0.5 degree reflectivity product for the entirety of 2014 was downloaded from NCDC\footnote{https://www.ncdc.noaa.gov/data-access/radar-data}. For the long baseline stations needed for double differencing, we chose the four stations: AC20 in Girdwood Alaska, CONZ in Concepcion Chile, P019 in Fairfield, Idaho, and UNBJ at the University of New Brunswick, Canada. The closest of these stations, P019 is approximately 1500 km from the KFWS radar defining the center of the DFW GPS network. These stations were chosen to ensure that there was always at least one satellite that had a view of all of the TxDOT GPS stations and one of the baseline stations.
 
 To get the meteorological data for a particular TxDOT GPS station, we found the closest ASOS site and used the equations from \cite{bai2003gps} to interpolate the surface temperature (T), pressure (P), and relative humidity (RH) data from the MSL height of ASOS site to the MSL height of the GPS station,
  
@@ -372,46 +374,73 @@ RH_{SL} = \dfrac{RH_{MSL}}{e^{-0.0006396 \cdot H}}
 
 In the above, $P_{SL}$ is the pressure at the station level, $P_{MSL}$ is the pressure at mean sea level, and $H$ is the height of the station (in meters MSL). We then wrote a Python script to mine the large database of met values from the various ASOS sites to generate the met RINEX files for each GPS station in 30-minute intervals. 
 
-The GPS and met RINEX files for each station were run through GAMIT to produce 30-minute estimates of IPW for each station for the entire year of 2014. The mean and standard deviation of IPW for GPS station were calculated for each month, and the IPW values normalized to obtain the standardized anomaly of precipitable water, which we have denoted NIPW. The NIPW values were then mapped to a 300 km by 300 km, 3km resolution grid centered on the KFWS radar using multiquadric interpolation method.
+The GPS and met RINEX files for each station were run through GAMIT to produce 30-minute estimates of IPW for each station for the duration of our entire data set (spring summer storm season 2014-2016). The mean and standard deviation of IPW for each GPS station were calculated for each month, and the IPW values normalized to obtain the standardized anomaly of precipitable water, which we denote NIPW. The NIPW values were then mapped to a 300 km by 300 km, 3km resolution grid centered on the KFWS radar using multiquadric interpolation method.
 
-The data processing was done on a Ubuntu server where GAMIT is installed. The server has 16 CPUs with 4 cores each. The data processing was performed in a manner that optimized the computation resources of the server thus allowing many days to be processed at the same time. Specifically, the 44 GPS stations were approach the stations had to be processed in pairs consisting of the station and its long-baseline reference.
+The data processing was done on a Ubuntu server where GAMIT is installed. The server has 16 CPUs with 4 cores each. The data processing was performed in a manner that optimized the computation resources of the server thus allowing many days to be processed at the same time. Specifically, the 44 GPS stations were broken down into 4 different sub networks where the data processing for the networks could run in parallel.
 
 Regarding the NEXRAD reflectivity data, this was first down-sampled from its native ~5-minute update rate to the 30-minute NIPW update interval. We then performed a polar to Cartesian coordinate conversion to map the reflectivity field to the same 3 km grid resolution as used for NIPW. The result is two fields of 10,000 pixels each updated every 30-minutes, one of NIPW (a measure of atmospheric water vapor) the other of reflectivity (a measure of rainfall).
 
 \section{Experimental Data Set}
 
-Machine learning involves first training the machine learning system on a training data set and then testing it on a separate validation data set. For our training and validation sets, 23 days from 2014 were chosen. These days were selected from the months of May, July, and August as it is during these months that strong convective storms are most likely. From these months, the days chosen were what we termed "weather anomaly" days, where a day is a weather anomaly day if 30 or more of the 44 GPS sites had NIPW values that exceeded 2 standard deviations from the mean during any 30-minute interval. Table \ref{table:weather anomaly} lists the 23 days comprising our training and validation sets.
+Machine learning involves first training the machine learning system on a training data set and then testing it on a separate validation data set. To determine our training and validation set we selected days within the storm periods which satisfied a certain criteria and these days were termed as "weather anomaly" days. The criteria for selecting these dates were to check to see if 30 or more IPW values for a particular day showed a standard deviation of greater than 2 from the mean amongst any of the stations. The list of days was further padded by taking into consideration one day before and one day after the weather anomaly days to account for storm build up and decay. Table \ref{table:weather anomaly} lists the weather anomaly days for the years 2014 and 2015. Interestingly enough almost of of the weather anomaly dates had a severe storm in them. 
 
-\begin{table}
-\begin{center}
-\caption{Weather anomaly days.}
-\begin{tabular}{ |c|c|c| } 
- \hline
- May & July & August  \\ 
- \hline
- 08 & 15 & 11 \\ 
- 09 & 16 & 16 \\
- 12 & 17 & 17 \\
- 13 & 18 & 18 \\
- 23 & 28 & 19 \\
- 24 & 29 & 29 \\
- 25 & 30 &      \\
- 26 & 31 &      \\
- 31 &     &       \\
-\hline
-\end{tabular}
+The training and validation for the dataset was performed in a K-fold cross validation manner where each month was considered a fold. In other words one month from the dataset was left out for validation and the other months were considered as the training data set. 
+
+%\begin{table}
+%\begin{center}
+%\caption{Weather anomaly days.}
+%\begin{tabular}{ |c|c|c| } 
+% \hline
+% 2014 & 2016 & \\
+% May & July & August  \\ 
+% \hline
+% 08 & 15 & 11 \\ 
+% 09 & 16 & 16 \\
+% 12 & 17 & 17 \\
+% 13 & 18 & 18 \\
+% 23 & 28 & 19 \\
+% 24 & 29 & 29 \\
+% 25 & 30 &      \\
+% 26 & 31 &      \\
+% 31 &     &       \\
+%\hline
+%\end{tabular}
+%\label{table:weather anomaly}
+%\end{center}
+%\end{table}
+
+\begin{table}[]
+\centering
+\caption{Weather anomaly days}
 \label{table:weather anomaly}
-\end{center}
+\begin{tabular}{|l|l|l|}
+\hline
+\multicolumn{1}{|c|}{Month} & \multicolumn{1}{c|}{2014} & \multicolumn{1}{c|}{2015} \\ \hline
+May & 	8,12,23,25,31	 & 	9,10,19,20,23,24,29	\\	\hline
+June & 	13,18,19,22,25	 & 	15,16,17,18,21	\\	\hline
+July & 	15,16,17,18,24,28,29,30,31	 & 	3,7,8,22,31	\\	\hline
+August & 	11,16,17,18,19,29	 & 	1,19,20,21,25	\\	\hline
+\end{tabular}
 \end{table}
-
 \section{Preliminary Data Analysis}
 
-To give a sense of typical IPW values in the DFW region and how these IPW values vary with height, Figure \ref{fig:Highest_Lowest_Site} plots the monthly means for the 4 highest and 4 lowest GPS sites. Clear in the plot is the height dependence, with mean IPW inversely proportional to station height.
+To give a sense of typical IPW values in the DFW region and how these IPW values vary with height, Figure \ref{fig:Highest_Lowest_Site} plots the monthly means for the 4 highest and 4 lowest GPS sites for the year of 2014. Clear in the plot is the height dependence, with mean IPW inversely proportional to station height.
 
-To see how IPW varies with season in the DFW region, Figure \ref{fig:IPW_site_dist} plots histograms of the IPW values observed at the lowest (TXBX) and highest (TXC3) GPS sites. Clear in the histograms is the seasonal dependence with higher mean IPW values during the warmer months (April-September) and lower mean IPW values during the cooler months (October-March). Again we see the height dependence with the IPW of the highest station having generally lower IPW values than the lowest station. 
+To see how IPW varies with season in the DFW region, Figure \ref{fig:IPW_site_dist} plots histograms of the IPW values observed at the lowest (TXBX) and highest (TXC3) GPS sites. From the figure we can see the seasonal dependence with higher mean IPW values during the warmer months (April-September) and lower mean IPW values during the cooler months (October-March). This is due to the fact that during the summer of the warmer months the atmosphere can hold more water vapor than the colder months. Again we see the height dependence with the IPW of the highest station having generally lower IPW values than the lowest station. 
 
 These first two plots illustrate why IPW values are typically normalized before they are combined to produce a field. Our approach of normalizing to obtain the number of standard deviations from the mean removes height and seasonal differences and also allows us to infer something about saturation level as many standard deviations above (below) the mean will typically indicate a saturated (dry) atmosphere respectively without a need to estimate relative humidities or dew points.
 
+\section{Preprocessing}
+
+Once we compute the IPW values we find several unusual drops and peaks in the IPW values which ideally does not make any sense. For example we a case as shown in the plot we see the IPW values falls from 60mm to 20mm which is not possible because energy can not be transferred at such a rate. We suspect that the cause of this is due to the lack of GPS signal for that particular time step where the averaging occurs. Instead of averaging over 8-12 different satellites we only fond 3-5 satellites to average from which causes the unusual drop.
+
+To address this issue before we compute the monthly means and standard deviations, we look at all places where there is a decrease of greater than 50\% or increase greater than 100\% between consecutive time steps. We set these values to NaN and linearly interpolate all of the NaN values. 
+
+\section{Atmospheric Rivers}
+
+From generating the the NIPW fields and the reflectivity fields we generally notice that the NIPW field creates a river like pattern in the domain. Further from overlapping the reflectivity field over the NIPW field we find that the the storm is flowing with the river or is being lea by the river. We also notice that the storm is slightly on the bank of the river. We will analyze several cases from our weather anomaly days in this section. 
+
+First let us plot the histogram of IPW values for certain stations for each month in the spring summer storm season. Figure ... shows the histogram for each month taken over both the years. 
 Finally, to see visually if there are any spatial and temporal correlations between NIPW and reflectivity that might allow a machine learning algorithm to predict rain, Figure \ref{fig:ipw_radar} shows the reflectivity fields superimposed atop the NIPW fields for three different storm cases from our experimental data set. These storm cases include May 8th (left hand column), July 17th (middle column), and August 29th (right hand column). Going from the top to the bottom of each column, the fields show the joint evolution of reflectivity and NIPW in 30 minute time intervals.
 
 The May 8th and August 29th cases show lines of thunderstorms moving through the DFW region. In both these cases, we can clearly see that the reflectivity seems to ride just slightly behind the moving ridge of high NIPW. For the July 17th case, which is more of a slow moving stratiform event, the reflectivity surrounds a very slow moving peak of NIPW. Thus, whereas it might be difficult to predict the rainfall at a given location from reflectivity alone, noting that rainfall tends to track just behind large peaks in NIPW can be expected to aid rainfall nowcast ability. We explore this conjecture in the next chapter.
@@ -439,8 +468,67 @@ The May 8th and August 29th cases show lines of thunderstorms moving through the
 \caption{Reflectivity fields overlayd onto IPW fields for three storms left: May 8th, center: July 17th and right: August 29th).}\label{fig:ipw_radar}
 \end{center}
 \end{figure}
-\chapter{Initial Learning Results}
+\chapter{Theory of the Machine Learning algorithms used in this Thesis}
+
+The goal of this Thesis is to determine if Integrated Presipitable Waver Vapor (IPW) measured from a network of GPS stations provides any additional value to nowcasting systems/applications. As such it is very difficult for us to model the underline generative process $P(X,Y)$ where X is the IPW field and Y is the reflectivity field. Thus a data driven approach is taken in order for us to learn from a training data L a function which maps spatial and temporal evolutions of precipitable water and precipitation fields and  In order for us to analyze this we use machine learning techniques to determine the additional value. 
+
+This chapter gives a background information on the machine learning algorithms that we will use to model and predict the future precipitation fields. A description of why these algorithms will become clear in the next chapter where we define the general formalisms for this problem. 
+
+We thus focus on discriminative methods which model the probability $P(Y | X = x)$. 
+Specifically we train machine learning algorithms explained in this chapter to our data set to find out if nowcasting performance is improved if the moisture information is provided along with the the time series of the spatial reflectivity fields. We focus on three main machine learning algorithms which are well suited for this problem. The Random forest, Naive Bayes and the convolutional neural network with dropout. 
 For our initial machine learning results we chose to apply machine learning techniques similar to those used in \cite{mecikalski2015probabilistic}. The problem they looked at was similar to ours in that they were trying to predict convective initiation 0-60 minutes in advance using GOES-R satellite data and NWP data. For their predictions they used two different machine learning classifiers, logistic regression and random forests. The accuracy of predicting convective initiation one hour in advance was reported as 84 \% and 71\% for logistic regression and random forest respectively.
+
+\section{Introduction}
+Supervised machine learning ideally involves a training data set where each instance or example has a label which can either take a finite value from a set ${c_1,c_2,c_3...c_n}$ or can take a real value where $y \in \mathbb{R}$. Let us define an input vector $\bold{x}$ to have values $x_1,x_2,x_3...x_d$ where $x_i \in X_i$ (i = 1..d) where d is the number of dimensions of the vector. If we thus have N different vectors of $\bold{x}$ we can thus represent the inputs in the form of a matrix $\bold{X} \in \mathbb{R}^{N \times d}$. Our training data set contains N labeled instances $(\bold{x},y)$. From this data set we will seek to find a model $f: \bold{x} \rightarrow y$. The can exists many such models f within the set of hypothesis $f \in H$. In order to find the best model $f*$, we seek to minimuze some form of convex error function. 
+\section{Random Forest}
+The random forest algorithm first introduced by \cite{breiman2001random} is a bagging technique where many different models with high bias but low variance are fit to patches of the data set which are averaged in the case of a regression task or a majority vote is taken in the classification task. Ideally the many different models which are fit to the data are decision trees or CART (Classification and Regression Trees). 
+The random forest algorithm is an ensemble technique which ideally consists of an ensemble of CART (Classification and Regression Trees) where the decision on deciding the response variable is made via majority vote or averaging of an ensemble of decorrelated decision trees in the forest \cite{breiman2001random}. Trees are ideal candidates for random forests as they can capture complex interactions in the data. Bagging or bootstrap aggregation is a method by which many different models are fit to the data and a majority vote or average is computed from all of the models put together. The main idea behind bagging is to improve on the bias variance trade off. We can assume that each model will have a high bias or under fit the data specific to it but have a low variance in general. In order to reduce the variance the dependent variable is decided by taking the majority vote or average of all of the models put together. In the case of regression task the output of the model is given by 
+\begin{equation}
+f_{RF}(x) = \dfrac{1}{B} \sum_{i = 1}^{B} T_b(x)
+\end{equation}
+where $f_{RF}(x)$ is the predicted value of the random forest and in the case of a classification task the majority vote of all the models are taken given by,
+\begin{equation}
+f_{RF}(x) = arg max \ T_b(x)
+\end{equation}
+
+\subsection{Classification and Regression Trees}
+
+Decision trees are the most ideal single predictors for a random forest and thus the forest has many trees and hence its name. Given a data set of $(\bold{x},y)$ pairs a simple decision tree works on the principle of finding a best split amongst all variables $d \in D$ given a set of training vector/output pairs $(\bold{x},y)$ where $\bold{x}$ is a vector with dimension $D$. Classification is based on finding a threshold $t$ such that a variable in a data case $x_d$ is split based in $x_d < t \ or \ x_d > t or \ x_d =t$. The data case is assigned to the left or right branch of the tree based on $x_d$ and threshold $t$. The data cases are traversed through the tree from the root node to the leaf of the tree and the class is determined at the leaf.
+
+As a decision tree learns, it finds both the optimal variable $d$ to split on and the optimal threshold value $t$ using a greedy heuristic that tries to maximize the training accuracy. In a geometrical sense the decision tree breaks the $D$ dimensional feature space into smaller regions such that each region contains the maximum number of instances that belong to a single class. Hence a fundamental metric $p_{km}$ is the proportion of observations in the m-th region that are in the k-th class. This leads to the so-called "Genie Index" criterion,
+
+\begin{equation}
+C_{GI} =  \sum_{k=1}^{K} p_{km} (1 - p_{km})
+\end{equation}
+which decision tree learning seeks to maximize by adjusting the tree parameters $d$ and $t$. Hyper-parameters to the algorithm include the number of trees in the forest $B$ and the maximum tree depth. The number of trees (200) was selected by starting with a small number of trees and increasing the number until the f1 score obtained on the cross-validation sets stopped improving. For maximum tree depth we used the scikit learn default in which the tree will grow until all its leaves are pure\cite{pedregosa2011scikit}.
+
+The random forest algorithm thus can be summarized by the following algorithm from \cite{friedman2001elements},
+ 
+\begin{enumerate}
+\item Initialize the number of trees B in the forest. 
+\item for b = 1:B
+\begin{enumerate}
+\item Draw a bootstrap sample Z of size N examples from the training data
+\item Grow a random forest tree $T_b$ to the bootstraped data by recursively repeating the following steps
+\begin{enumerate}
+\item select m at random from D (ideally $m = \sqrt{|D|}$)
+\item pick the best variable split among the m variables based on the Genie criteria
+\item split the node to two daughter nodes
+\end{enumerate}
+\item The classification is based on the majority votes from B trees. 
+\end{enumerate}
+\end{enumerate}
+
+The random forest thus forms its "decorrelated" trees by picking a set of random variables $m$ at each iteration of each tree. In this fashion an ensemble of weak learners are built.
+
+ One of the key advantages of the Random Forest classifier is its interpretability through variable importance. The variable importance is an attribute of the random forest classifier which measures the relative importance of each variable. This is done by measuring the prediction performance of the "OOB (Out Of Box Samples)". When the $b^{th}$ tree is being constructed, examples apart from its bootstrapped samples are used to measure its predictive performance at a particular split. Different permutations of the variable split are tried and the performance is measured on the OOB samples. The results are accumulated over all trees and the variables which are most important are ranked.
+ 
+\section{Convolutional Neural Network}
+
+Deep learning has shown promises in many different tasks such as image classification and speech recognition. Fundamentally it seeks to learn multiple layers of representation or extract features from the raw input which it finds useful. Deep neural networks are trained on a convex loss function depending on the task and the training is done using back propagation [citation]. These approaches have slowly started to surface in the meteorological domain where atmospheric variables are involved. The interesting thing about deep learning approaches is that the problem is mostly solver as long as we have an end to end trainable network. What sets CNN apart from conventional neural networks is the convolutional layer. 
+
+\chapter{Problem Formulation}
+
 \section{Problem Setup}
 The classifiers we choose for our initial machine learning experiments were the Naive Bayes classifier and the Random Forest classifier. Our goal is to make a binary 0, 1 (no rain, rain) prediction 1 hour in the future for a random subset of the 10,000 pixels that make up the 300 square km grid around the KFWS radar, where rain is taken as a pixel reflectivity value exceeding 24 dBZ.
  
@@ -484,38 +572,6 @@ f_{NB}(x) = \operatornamewithlimits{argmax}\limits_{c \in Y} \pi_c \prod_{d = 1}
 
 The Naive Bayes classifier despite making its fundamental assumption of independent variables, which is never true for real-world problems, is capable of forming complex decision boundaries.
 
-\section{Random Forest Classifier}
-The random forest classifier consists of an ensemble of CART (Classification and Regression Trees) where the decision on deciding the class variable is made via majority vote of an ensemble of decorrelated decision trees in the forest \cite{breiman2001random}. Trees are ideal candidates for random forests as they can capture complex interactions in the data.
-
-A simple decision tree works on the principle of finding a best split amongst all variables $d \in D$ given a set of training vector/output pairs $(x,y)$ where $x$ is a vector with dimension $D$. Classification is based on finding a threshold $t$ such that a variable in a data case $x_d$ is split based in $x_d < t \ or \ x_d > t or \ x_d =t$. The data case is assigned to the left or right branch of the tree based on $x_d$ and threshold $t$. The data cases are traversed through the tree from the root node to the leaf of the tree and the class is determined at the leaf.
-
-As a decision tree learns, it finds both the optimal variable $d$ to split on and the optimal threshold value $t$ using a greedy heuristic that tries to maximize the training accuracy. In a geometrical sense the decision tree breaks the $D$ dimensional feature space into smaller regions such that each region contains the maximum number of instances that belong to a single class. Hence a fundamental metric $p_{km}$ is the proportion of observations in the m-th region that are in the k-th class. This leads to the so-called "Genie Index" criterion,
-
-\begin{equation}
-C_{GI} =  \sum_{k=1}^{K} p_{km} (1 - p_{km})
-\end{equation}
-which decision tree learning seeks to maximize by adjusting the tree parameters $d$ and $t$. Hyper-parameters to the algorithm include the number of trees in the forest $B$ and the maximum tree depth. The number of trees (200) was selected by starting with a small number of trees and increasing the number until the f1 score obtained on the cross-validation sets stopped improving. For maximum tree depth we used the scikit learn default in which the tree will grow until all its leaves are pure\cite{pedregosa2011scikit}.
-
-The random forest algorithm thus can be summarized by the following algorithm from \cite{friedman2001elements},
- 
-\begin{enumerate}
-\item Initialize the number of trees B in the forest. 
-\item for b = 1:B
-\begin{enumerate}
-\item Draw a bootstrap sample Z of size N examples from the training data
-\item Grow a random forest tree $T_b$ to the bootstraped data by recursively repeating the following steps
-\begin{enumerate}
-\item select m at random from D (ideally $m = \sqrt{|D|}$)
-\item pick the best variable split among the m variables based on the Genie criteria
-\item split the node to two daughter nodes
-\end{enumerate}
-\item The classification is based on the majority votes from B trees. 
-\end{enumerate}
-\end{enumerate}
-
-The random forest thus forms its "decorrelated" trees by picking a set of random variables $m$ at each iteration of each tree. In this fashion an ensemble of weak learners are built.
-
- One of the key advantages of the Random Forest classifier is its interpretability through variable importance. The variable importance is an attribute of the random forest classifier which measures the relative importance of each variable. This is done by measuring the prediction performance of the "OOB (Out Of Box Samples)". When the $b^{th}$ tree is being constructed, examples apart from its bootstrapped samples are used to measure its predictive performance at a particular split. Different permutations of the variable split are tried and the performance is measured on the OOB samples. The results are accumulated over all trees and the variables which are most important are ranked.
  
  \section{Nowcasting Performance Results}
  

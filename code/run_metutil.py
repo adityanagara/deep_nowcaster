@@ -13,12 +13,12 @@ import sys
 def call_metutil(net,doy,ofile):
     x = DFWnet.CommonData()
     
-    base_path = '/home/aditya/UMASS/DFWnetDB/'
-    tempdir = base_path + net + '/2015/' + doy + os.sep
+    base_path = '/home/aditya/UMASS/DFWnetwork/'
+    tempdir = base_path + net + '/2016/' + doy + os.sep
     
     for s in x.sites[x.sites[:,-1] == net,0]:
         
-        zfile = 'z' + s + '5.' + doy
+        zfile = 'z' + s + '6.' + doy
         
         if os.path.exists(tempdir + zfile):
             os.chdir(tempdir)
@@ -40,10 +40,9 @@ def split_files():
     
 file_dict = split_files()
 net = sys.argv[1]
-doy_list = [str(x).zfill(3) for x in range(121,152)]
-#doy_list = file_dict[net]
+doy_list = [str(x).zfill(3) for x in range(122,213)]
 
-file_path = '/home/aditya/UMASS/DFWnetDB/'
+file_path = '/home/aditya/UMASS/DFWnetwork/'
 
 dict1 = {}
 
@@ -52,19 +51,16 @@ def dict_func(this,b):
 
 map(lambda x: dict_func(dict1,x),doy_list)
 
-
-doy_list = [str(x) for x in range(121,243)]
+doy_list = [str(x) for x in range(122,213)]
 
 for n in sys.argv[1:]:
     FATAL_DOY = 0
     DOYS = []
     for d in doy_list:
-        if os.path.exists(file_path + n+ '/2015' + os.sep + d):
+        if os.path.exists(file_path + n+ '/2016' + os.sep + d):
             ofile = 'o' + n + 'a.' + d
             
-            if os.path.exists(file_path + n+ '/2015' + os.sep + d + os.sep + ofile):
-                
-                            
+            if os.path.exists(file_path + n+ '/2016' + os.sep + d + os.sep + ofile):
                 num = call_metutil(n,d,ofile)
             else:
                 FATAL_DOY+=1
@@ -99,9 +95,6 @@ print DOYS
 /home/aditya/UMASS/DFWnet/net3/2014
 
 sh_metutil -f o* -z z* -i 1800
-
-
-
 '''
 
     

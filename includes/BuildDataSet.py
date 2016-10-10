@@ -12,6 +12,7 @@ import getpass
 import re 
 import ftplib
 import subprocess
+from matplotlib import pyplot as plt
 
 '''
 This package deals with building data sets for training a machine learning
@@ -70,7 +71,7 @@ class dataset(object):
         
 
     
-    def load_storm_days(self,yr):
+    def load_storm_days(self,yr,kill_dates = True):
         if yr == 14:
             storm_dates = np.load('../data/storm_dates_2014.npy').astype('int')
             # The following 3 dates are going to be removed because we do not
@@ -83,8 +84,39 @@ class dataset(object):
             storm_dates = np.delete(storm_dates,idx3,axis = 0)
         elif yr == 15:
             storm_dates = np.load('../data/storm_dates_2015.npy').astype('int')
+            # Let us not use the days in July since they are all stratiform
+            # cases 
+            storm_dates = storm_dates[:-10,:]
+        elif yr == 16:
+            storm_dates = np.load('../data/storm_dates_2016.npy').astype('int')
+        if kill_dates:
+            if yr == 14:
+                kill_these_dates = [[142,  14,   5,  22],
+                                    [143,  14,   5,  23],
+                                    [148,  14,   5,  28],
+                                    [151,  14,   5,  31],
+                                    [170,  14,   6,  19],
+                                    [173,  14,   6,  22],
+                                    [175,  14,   6,  24],
+                                    [179,  14,   6,  28],
+                                    [183,  14,   7,   2],
+                                    [199,  14,   7,  18]
+                                    ]
+                for date in kill_these_dates:
+                    idx = np.where(np.all(storm_dates == date,axis = 1))[0][0]
+                    storm_dates = np.delete(storm_dates,idx,axis=0)
+            elif yr == 15:
+                kill_these_dates = [[132,  15,   5,  12],
+                                    [138,  15,   5,  18],
+                                    [140,  15,   5,  20],
+                                    [142,  15,   5,  22],
+                                    [147,  15,   5,  27],
+                                    [170,  15,   6,  19]
+                                    ]
+                for date in kill_these_dates:
+                    idx = np.where(np.all(storm_dates == date,axis = 1))[0][0]
+                    storm_dates = np.delete(storm_dates,idx,axis = 0)
         return storm_dates
-    
     def club_days(self,storm_dates):
         '''This function finds days in our storm dates list and clubs
         strings of days together'''
@@ -438,11 +470,11 @@ class dataset(object):
         # Stack frames into volumes
         IPWFeatures = IPWFeatures[:,:-1].reshape(IPWFeatures.shape[0],6,33,33)
         ReflFeatures = ReflFeatures.reshape(ReflFeatures.shape[0],6,33,33)
-        # Use frames from one hour ago, this will drip the current frame and frame at t -30
+        # Use frames from one hour ago, this will drop the current frame and frame at t -30
         IPWFeatures = IPWFeatures[:,2:,:,:]
         ReflFeatures = ReflFeatures[:,2:,:,:]
         # Merge IPW and reflectivity to create volume of shape number of examples x 8 x 33 x 33
-        X = np.concatenate((IPWFeatures,ReflFeatures),axis=1)
+        X = np.concatenate((IPWFeatures,ReflFeatures),axis = 1)
         # return data sets
         return (year_day_time,X.astype('uint8'),Y.astype('uint8'))
     
@@ -466,12 +498,12 @@ class dataset(object):
         return (year_day_time,IPWFeatures.astype('uint8'),ReflFeatures.astype('uint8'))
     
     def get_field_statistics(self,random_points):
-        
+        '''Takes as input a tuple with (time_array,ipw_features,reflectivity_features)
+        Averages the fields for each time step'''
         indices_i = [(x*1089,(x+1)*1089)for x in range(4) ]
         indices_r = [(x*1089,(x+1)*1089)for x in range(4,8) ]
-        IPWFeatures = random_points[0].astype('float')
-        
-        ReflFeatures = random_points[1].astype('float')
+        IPWFeatures = random_points[1].astype('float')
+        ReflFeatures = random_points[2].astype('float')
         # 1089 is the number of pixels per 33x33 image. When we flatten the entire 
         # matrix then we get a vector. Since we are using the data from an hour back
         # we use all the pixels from the slice 2178. The last element of the IPW 
@@ -485,16 +517,65 @@ class dataset(object):
         # 12-16 Refl standard deviation, 17 output variable (binary/multiclass)
         ipw_refl_stats = np.zeros((data.shape[0],17))
         ipw_refl_stats[:,-1] = data[:,-1]
+        for ix in range(len(indices_i)):
+            # IPW averages and standard deviations
+            ipw_refl_stats[:,ix] = np.average(data[:,indices_i[ix][0]:indices_i[ix][1]],axis = 1)
+            ipw_refl_stats[:,ix + 4] = np.std(data[:,indices_i[ix][0]:indices_i[ix][1]],axis = 1)
+            # Reflectivity averages and standard deviations
+            ipw_refl_stats[:,ix + 8] = np.average(data[:,indices_r[ix][0]:indices_r[ix][1]],axis = 1)
+            ipw_refl_stats[:,ix + 12] = np.std(data[:,indices_r[ix][0]:indices_r[ix][1]],axis = 1)
+        # redurn the array of shape (num_examples,17)
+        return ipw_refl_stats
+    
+    def get_temporal_statistics(self,ipw_refl_stats):
+        temporal_stats = np.zeros((ipw_refl_stats.shape[0],10))
+        # IPW temporal features
+        temporal_stats[:,0] = ipw_refl_stats[:,0] - ipw_refl_stats[:,1]
+        temporal_stats[:,1] = ipw_refl_stats[:,1] - ipw_refl_stats[:,2]
+        temporal_stats[:,2] = ipw_refl_stats[:,2] - ipw_refl_stats[:,3]
+        temporal_stats[:,3] = ipw_refl_stats[:,0] - ipw_refl_stats[:,2]
+        temporal_stats[:,4] = ipw_refl_stats[:,1] - ipw_refl_stats[:,3]
+        # Reflectivity temporal features
+        temporal_stats[:,5] = ipw_refl_stats[:,8] - ipw_refl_stats[:,9]
+        temporal_stats[:,6] = ipw_refl_stats[:,9] - ipw_refl_stats[:,10]
+        temporal_stats[:,7] = ipw_refl_stats[:,10] - ipw_refl_stats[:,11]
+        temporal_stats[:,8] = ipw_refl_stats[:,8] - ipw_refl_stats[:,10]
+        temporal_stats[:,9] = ipw_refl_stats[:,9] - ipw_refl_stats[:,11]
+        
+        return np.concatenate((temporal_stats,ipw_refl_stats),axis = 1)
+        
+        
+    def get_field_statistics_30minPrediction(self,random_points):
+        '''build basic features for a 30 minute in advance prediction'''
+        indices_i = [(x*1089,(x+1)*1089)for x in range(4) ]
+        indices_r = [(x*1089,(x+1)*1089)for x in range(4,8) ]
+        IPWFeatures = random_points[1].astype('float')
+        
+        ReflFeatures = random_points[2].astype('float')
+        # 1089 is the number of pixels per 33x33 image. When we flatten the entire 
+        # matrix then we get a vector. Since we are using the data from an hour back
+        # we use all the pixels from the slice 2178. The last element of the IPW 
+        # matrix contains the ground truth so we slice up to that not including 
+        # that value. 
+        data = np.hstack((IPWFeatures[:,1089:5445],ReflFeatures[:,1089:5445],IPWFeatures[:,-1].reshape(IPWFeatures.shape[0],1)))
+        # For some time steps we may not have 2 hours worth of prior data which are 
+        # represented by nan. We drop these examples. 
+        data = data[~np.any(np.isnan(data),axis = 1),:]
+        # Initialize the data array 0-4 IPW average, 4-8 IPW STD, 8-12 Refl average 
+        # 12-16 Refl standard deviation, 17 output variable (binary/multiclass)
+        ipw_refl_stats = np.zeros((data.shape[0],17))
+        ipw_refl_stats[:,-1] = data[:,-1]
             
         for ix in range(len(indices_i)):
             # IPW averages and standard deviations
             ipw_refl_stats[:,ix] = np.average(data[:,indices_i[ix][0]:indices_i[ix][1]],axis = 1)
             ipw_refl_stats[:,ix + 4] = np.std(data[:,indices_i[ix][0]:indices_i[ix][1]],axis = 1)
             # Reflectivity averages and standard deviations
-            ipw_refl_stats[:,ix + 4] = np.average(data[:,indices_r[ix][0]:indices_r[ix][1]],axis = 1)
+            ipw_refl_stats[:,ix + 8] = np.average(data[:,indices_r[ix][0]:indices_r[ix][1]],axis = 1)
             ipw_refl_stats[:,ix + 12] = np.std(data[:,indices_r[ix][0]:indices_r[ix][1]],axis = 1)
         # redurn the array of shape (num_examples,17)
         return ipw_refl_stats
+
 
 
 class reflectivity_fields(object):
@@ -597,13 +678,66 @@ def test_refl_converter():
         print refl_img[a,:]
         print refl_array[a,:]
 
+def test_slicing_fields(x_,y_,ipw_array,refl_array):
+    gridX = np.arange(-150.0,151.0,300.0/(100-1))
+    gridY = np.arange(-150.0,151.0,300.0/(100-1))
+    i_start = x_ - 16
+    i_end = x_ + 17
+    j_start = y_ -16
+    j_end = y_ + 17
+    gridIPW = np.zeros((33,33))
+    gridZ = np.zeros((33,33))
+    gridIPW[:] = ipw_array[j_start:j_end,i_start:i_end]
+    gridZ[:] = refl_array[j_start:j_end,i_start:i_end]
+    
+    x_range_start = gridX[x_] - 16.0*(300.0/99.0)
+    y_range_start = gridY[y_] - 16.0*(300.0/99.0)
 
+    x_range_end = gridX[x_] + 17.0*(300.0/99.0)
+    y_range_end = gridY[y_] + 17.0*(300.0/99.0)
+
+    gridX_ = np.arange(x_range_start,x_range_end,300./99.)
+    gridY_ = np.arange(y_range_start,y_range_end,300./99.)
+    
+    plt.figure()
+    plt.subplot(2,2,1)
+    plt.pcolor(gridX_,gridY_,gridIPW,cmap='jet', vmin=-3.0, vmax=3.0)
+    plt.plot(gridX[x_],gridY[y_],'r*')
+    plt.grid()
+    
+    plt.xlim((-150.0,150.0))
+    plt.ylim((-150.0,150.0))
+
+    plt.subplot(2,2,2)
+
+    plt.pcolor(gridX,gridY,ipw_array,cmap='jet', vmin=-3.0, vmax=3.0)
+    plt.plot(gridX[x_],gridY[y_],'r*')
+    plt.grid()
+    plt.xlim((-150.0,150.0))
+    plt.ylim((-150.0,150.0))
+
+    plt.subplot(2,2,3)
+    plt.pcolor(gridX_,gridY_,gridZ,cmap='jet', vmin=10.0, vmax=60.0)
+    plt.plot(gridX[x_],gridY[y_],'r*')
+    plt.grid()
+    plt.xlim((-150.0,150.0))
+    plt.ylim((-150.0,150.0))
+
+
+    plt.subplot(2,2,4)
+    plt.pcolor(gridX,gridY,refl_array,cmap='jet', vmin=10.0, vmax=60.0)
+    plt.plot(gridX[x_],gridY[y_],'r*')
+    plt.grid()
+    plt.xlim((-150.0,150.0))
+    plt.ylim((-150.0,150.0))
+    
+    
 def convert_fields_to_images():
     '''Convert the ipw and reflectivity field arrays to gray scale image 
     arrays'''
     data_builder = dataset()
     storm_dates_all = {}
-    for yr in [14,15]:
+    for yr in [14,15,16]:
         storm_dates_all[yr] = data_builder.load_storm_days(yr)
         doy_strings = data_builder.club_days(storm_dates_all[yr])
         days_in_sorted = doy_strings.keys()
@@ -629,13 +763,22 @@ def convert_fields_to_images():
             np.save('../data/dataset/20' + str(yr) + os.sep + ipw_img_file,ipw_img_array)
             np.save('../data/dataset/20' + str(yr) + os.sep + refl_img_file,refl_img_array)
 
-        
-    
 
 def main():
 #    test_ipw_refl_converter()
 #    test_refl_converter()
     convert_fields_to_images()
+#    x = dataset()
+#    PixelPoints = x.sample_random_pixels()
+#    ipw,refl = x.sort_IPW_refl_files(14)
+#    base_path = '../data/dataset/2014/'
+#    file_idx = 345
+#    ipw_array = np.load(base_path + ipw[file_idx])
+#    refl_array = np.load(base_path + refl[file_idx])
+#    pt_idx = 65
+#    test_slicing_fields(PixelPoints[pt_idx][0],PixelPoints[pt_idx][1],ipw_array ,refl_array)
+    
+    
     
     
 

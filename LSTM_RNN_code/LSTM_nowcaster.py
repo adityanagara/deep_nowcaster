@@ -119,7 +119,7 @@ def generate_arrays_from_file(val_block):
     base_path = '../data/TrainTest/points/'
     while 1:
         point_files = filter(lambda x: x[-4:] == '.pkl',os.listdir(base_path))
-        for i,ea_point in enumerate(point_files[:10]):
+        for i,ea_point in enumerate(point_files):
             # create numpy arrays of input data
             # and labels, from each line in the file
             x, y = process_dataset(ea_point,val_block)
@@ -130,7 +130,7 @@ def generate_arrays_from_file_validation(val_block):
     base_path = '../data/TrainTest/points/'
     while 1:
         point_files = filter(lambda x: x[-4:] == '.pkl',os.listdir(base_path))
-        for i,ea_point in enumerate(point_files[:10]):
+        for i,ea_point in enumerate(point_files):
             # create numpy arrays of input data
             # and labels, from each line in the file
             x, y = process_dataset_validation(ea_point,val_block)
@@ -140,7 +140,7 @@ def generate_arrays_from_file_validation(val_block):
 
 
 def lstm_model(val_block):
-    points = 10
+    points = 500
 #    for a in generate_arrays_from_file(val_block):
 #        print a[0].shape,a[1].shape
     
@@ -159,20 +159,19 @@ def lstm_model(val_block):
     
     mdl_fit = model.fit_generator(generate_arrays_from_file(val_block),
                                   samples_per_epoch = 2424*points,
-                                  nb_epoch = 2, verbose=1,
+                                  nb_epoch = 100, verbose=1,
                                   validation_data=generate_arrays_from_file_validation(val_block),
                                     nb_val_samples = 551*points, 
                                     show_accuracy=True)
     
-    print mdl_fit.history
-    
+#    print mdl_fit.history
     
     model.save_weights('my_model_weights.h5')
+#    model.load_weights('my_model_weights.h5')
+    f1 = file('results.pkl','w+')
+    pkl.dump(mdl_fit.history,f1)
+    f1.close()
     
-    
-#    score, acc = model.evaluate(X_test, y_test,
-#                            batch_size=batch_size)
-
 
 def main():
     data_builder = BuildDataSet.dataset(num_points = 500)
@@ -180,8 +179,6 @@ def main():
 #    make_dataset_NN_2(data_builder)
     lstm_model(validation_blocks[0])
     
-
-
 if __name__ == '__main__':
     main()
 

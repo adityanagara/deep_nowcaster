@@ -1,0 +1,37 @@
+#!/bin/bash
+python RF_prediction_experiments.py False 60 ipw_refl 400 RF_60prediction_ipw_refl_experiment 6
+python RF_prediction_experiments.py False 60 ipw_refl 400 RF_60prediction_ipw_refl_experiment 7
+python RF_prediction_experiments.py False 60 ipw_refl 400 RF_60prediction_ipw_refl_experiment 8
+python RF_prediction_experiments.py False 60 ipw_refl 400 RF_60prediction_ipw_refl_experiment 9
+python RF_prediction_experiments.py False 60 ipw_refl 400 RF_60prediction_ipw_refl_experiment 10
+python RF_prediction_experiments.py False 60 ipw_refl 400 RF_60prediction_ipw_refl_experiment 11
+python RF_prediction_experiments.py False 60 ipw_refl 400 RF_60prediction_ipw_refl_experiment 12
+
+python RF_prediction_experiments.py False 60 ipw_refl 500 RF_60prediction_ipw_refl_experiment 7
+python RF_prediction_experiments.py False 60 ipw_refl 500 RF_60prediction_ipw_refl_experiment 9
+python RF_prediction_experiments.py False 60 ipw_refl 500 RF_60prediction_ipw_refl_experiment 10
+python RF_prediction_experiments.py False 60 ipw_refl 500 RF_60prediction_ipw_refl_experiment 11
+python RF_prediction_experiments.py False 60 ipw_refl 500 RF_60prediction_ipw_refl_experiment 12
+
+python RF_prediction_experiments.py False 60 ipw_refl 600 RF_60prediction_ipw_refl_experiment 6
+python RF_prediction_experiments.py False 60 ipw_refl 600 RF_60prediction_ipw_refl_experiment 7
+python RF_prediction_experiments.py False 60 ipw_refl 600 RF_60prediction_ipw_refl_experiment 8
+python RF_prediction_experiments.py False 60 ipw_refl 600 RF_60prediction_ipw_refl_experiment 9
+python RF_prediction_experiments.py False 60 ipw_refl 600 RF_60prediction_ipw_refl_experiment 12
+
+python RF_prediction_experiments.py False 60 ipw_refl 700 RF_60prediction_ipw_refl_experiment 6
+python RF_prediction_experiments.py False 60 ipw_refl 700 RF_60prediction_ipw_refl_experiment 7
+python RF_prediction_experiments.py False 60 ipw_refl 700 RF_60prediction_ipw_refl_experiment 8
+python RF_prediction_experiments.py False 60 ipw_refl 700 RF_60prediction_ipw_refl_experiment 9
+python RF_prediction_experiments.py False 60 ipw_refl 700 RF_60prediction_ipw_refl_experiment 10
+python RF_prediction_experiments.py False 60 ipw_refl 700 RF_60prediction_ipw_refl_experiment 11
+python RF_prediction_experiments.py False 60 ipw_refl 700 RF_60prediction_ipw_refl_experiment 12
+
+python RF_prediction_experiments.py False 60 ipw_refl 800 RF_60prediction_ipw_refl_experiment 6
+python RF_prediction_experiments.py False 60 ipw_refl 800 RF_60prediction_ipw_refl_experiment 7
+python RF_prediction_experiments.py False 60 ipw_refl 800 RF_60prediction_ipw_refl_experiment 8
+python RF_prediction_experiments.py False 60 ipw_refl 800 RF_60prediction_ipw_refl_experiment 9
+python RF_prediction_experiments.py False 60 ipw_refl 800 RF_60prediction_ipw_refl_experiment 10
+python RF_prediction_experiments.py False 60 ipw_refl 800 RF_60prediction_ipw_refl_experiment 11
+python RF_prediction_experiments.py False 60 ipw_refl 800 RF_60prediction_ipw_refl_experiment 12
+

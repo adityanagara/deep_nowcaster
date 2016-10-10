@@ -20,15 +20,15 @@ def download_files(doy,net):
     DFW = DFWnet.CommonData()
     data = DFW.sites
     ftp_noaa = ftplib.FTP('www.ngs.noaa.gov','anonymous','adi@gmail.com')
-    ftp_noaa.cwd('/cors/rinex/2015' + os.sep + doy )
+    ftp_noaa.cwd('/cors/rinex/2016' + os.sep + doy )
     sites = ftp_noaa.nlst()
     initial = os.getcwd()
     data = data[data[:,-1] == net,:]
     for tx_site in data[:,0]:
         if tx_site in sites:
-            os.chdir('/home/aditya/UMASS/DFWnetDB' + os.sep + data[data[:,0] == tx_site,-1][0] + '/2015/rinex')
-            ftp_noaa.cwd('/cors/rinex/2015' + os.sep + doy + os.sep + tx_site)
-            dyna_file_name =   tx_site + doy + '0' + '.' + '15o.gz'
+            os.chdir('/home/aditya/UMASS/DFWnetwork' + os.sep + data[data[:,0] == tx_site,-1][0] + '/2016/rinex')
+            ftp_noaa.cwd('/cors/rinex/2016' + os.sep + doy + os.sep + tx_site)
+            dyna_file_name =   tx_site + doy + '0' + '.' + '16o.gz'
             print dyna_file_name
             siteList = ftp_noaa.nlst()
             print siteList
@@ -56,12 +56,12 @@ def run_gamit(doy,net):
     subprocess.call(['sh_gamit','-expt',net,'-d','2015',doy,'-orbit','IGSF','-met'])
     print '%%%% Processing for  ' + doy + '  is complete %%%%'
 
-net = sys.argv[1]
+net = 'net1'
 #doy_list = [str(x).zfill(3) for x in range(188,212)]
-doy_list = ['180','181']
+doy_list = ['121']
 for doy in doy_list:
     download_files(doy,net)
-    run_gamit(doy,net)
+#    run_gamit(doy,net)
         
         
 

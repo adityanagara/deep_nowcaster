@@ -17,7 +17,6 @@ import os
 from netCDF4 import Dataset
 import shutil
 
-
 Months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
 
 def ipw_diff_distribution():
@@ -28,7 +27,6 @@ def ipw_diff_distribution():
     print ipw_2014.shape
     
     plt.figure()
-    
     
     print ipw_2014[0,35,0]
     
@@ -56,6 +54,35 @@ def ipw_diff_distribution():
 
     plt.show()
 
+def ipw_diff_distribution_monthly():
+    
+    x = DFWnet.CommonData()
+    
+    # test may diff
+    x.date2doy(14,5,1)
+    start_day = x.doy
+    x.date2doy(14,6,1)
+    end_day = x.doy
+    
+    
+    ipw_2014 = x.IPWvals_2014
+    
+    for i in range(44):
+        
+        stn_diff = np.diff(ipw_2014[start_day:end_day,i,1:].reshape(-1,).astype('float'))
+        
+        stn_diff[np.isnan(stn_diff)] = 0.
+        
+        stn_diff = np.array([abs(num) for num in stn_diff])
+        bins_ = [10*b for b in range(5)] # ,bins = bins_
+        counts,bins = np.histogram(stn_diff)
+        print ipw_2014[0,i,0],counts,bins
+        stn_diff = stn_diff[stn_diff > 20.]
+        print stn_diff
+        
+        
+        
+    
 def reflectivity_monthly_distribution():
     '''Plots the distribution for each month in the data set. Given an 
     archive of NEXRAD files we are going to seek to find the days where
@@ -91,7 +118,6 @@ def reflectivity_monthly_distribution():
             # and a 100x100 grid to hold each time step worth of data
             out_array = np.zeros((len(file_list),100,100))
             time_array = []
-#            file_ctr = 0
             for i,fl in enumerate(file_list):
                 rad = Dataset(new_dir + fl)
                 out_array[i,...] = reflectivity.reflectivity_polar_to_cartesian(rad)
@@ -103,8 +129,8 @@ def reflectivity_monthly_distribution():
             
 
 def main():
-#    ipw_diff_distribution()
-    reflectivity_monthly_distribution()
+    ipw_diff_distribution_monthly()
+#    reflectivity_monthly_distribution()
     
 if __name__ == '__main__':
     main()

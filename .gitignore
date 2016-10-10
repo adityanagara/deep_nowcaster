@@ -15,3 +15,7 @@ papers/
 .ipynb_checkpoints
 *.h5
 *.mat
+*.pkl
+*.png
+*.pdf
+

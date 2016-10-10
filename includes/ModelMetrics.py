@@ -19,7 +19,7 @@ class NOWCAST_performance():
     Column 0: predicted values (0 or 1)
     Column 1: ground truth (0 or 1)
     Column 2: predicted score between [0,1]'''
-    def __init__(self,obj_tuple):
+    def __init__(self,obj_tuple,model = None):
         # Probability of detection
         self.POD = float(self.hits(obj_tuple)) / float((self.hits(obj_tuple) + self.misses(obj_tuple)))
         # Probability of false detection
@@ -33,19 +33,20 @@ class NOWCAST_performance():
         # get precision recall and threshold list to plot curves
         self.precision_recall_curves(obj_tuple)
         # save the predictions 
+        self.mdl = model
 #        self.obj_typle = obj_tuple
         
     def hits(self,obj_tuple):
-        return np.sum(np.logical_and(obj_tuple[0] == obj_tuple[1],obj_tuple[1] == 1.))
+        return np.sum(np.logical_and(obj_tuple[0] == obj_tuple[1],obj_tuple[1].astype('float') == 1.))
 
     def misses(self,obj_tuple):
-        return np.sum(np.logical_and(obj_tuple[0] != obj_tuple[1],obj_tuple[1] == 1.))
+        return np.sum(np.logical_and(obj_tuple[0] != obj_tuple[1],obj_tuple[1].astype('float') == 1.))
 
     def false_alarm(self,obj_tuple):
-        return np.sum(np.logical_and(obj_tuple[0] != obj_tuple[1],obj_tuple[1] == 0.))
+        return np.sum(np.logical_and(obj_tuple[0] != obj_tuple[1],obj_tuple[1].astype('float') == 0.))
 
     def correct_negatives(self,obj_tuple):
-        return np.sum(np.logical_and(obj_tuple[0] == obj_tuple[1],obj_tuple[1] == 0.))
+        return np.sum(np.logical_and(obj_tuple[0] == obj_tuple[1],obj_tuple[1].astype('float') == 0.))
     
     def precision_recall_scores(self,obj_tuple):
         p_score = precision_score(obj_tuple[1],obj_tuple[0])

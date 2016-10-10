@@ -25,29 +25,7 @@ import scipy.io
 #plt.ioff()
 plt.ion()
 np.random.seed(451234)
-
-def gen_slices(ipw_array,refl_array):
-    X_11 = ipw_array[:50,:50]
-    Y_11 = refl_array[:50,:50]
-    X_12 = ipw_array[:50,50:]
-    Y_12 = refl_array[:50,50:]
-    X_21 = ipw_array[50:,:50]
-    Y_21 = refl_array[50:,:50]
-    X_22 = ipw_array[50:,50:]
-    Y_22 = refl_array[50:,50:]
-    
-    return [X_11,X_12,X_21,X_22],[Y_11,Y_12,Y_21,Y_22]
-    
-
-def load_data_slices(phase = 1,images_fields = 'fields'):
-    
-    base_path = '../data/dataset/20'
-    # We are going to visually look at each day to determine our storm 
-    # dates. The storm dates are determined such that there is not 
-    # too much noise and there is an evident storm. 
-    data_builder = BuildDataSet.dataset(num_points = 500)
-    
-    storm_dates = np.array(([128,  14,   5,   8],
+storm_dates_train = np.array(([128,  14,   5,   8],
                            [129,  14,   5,   9],
                             [132,  14,   5,  12],
                             [133,  14,   5,  13],
@@ -64,23 +42,58 @@ def load_data_slices(phase = 1,images_fields = 'fields'):
                             [223,  14,   8,  11],
                             [241,  14,   8,  29]))
 
+storm_dates_test = np.array(([128,  15,   5,   8],
+                            [129,  15,   5,   9],
+                            [137,  15,   5,  17],
+                            [138,  15,   5,  18],
+                            [139,  15,   5,  19],
+                            [140,  15,   5,  20],
+                            [147,  15,   5,  27],
+                            [148,  15,   5,  28],
+                            [164,  15,   6,  13],
+                            [165,  15,   6,  14],
+                            [166,  15,   6,  15],
+                            [167,  15,   6,  16],
+                            [168,  15,   6,  17]))
+
+
+def gen_slices(ipw_array,refl_array):
+    X_11 = ipw_array[:50,:50]
+    Y_11 = refl_array[:50,:50]
+    X_12 = ipw_array[:50,50:]
+    Y_12 = refl_array[:50,50:]
+    X_21 = ipw_array[50:,:50]
+    Y_21 = refl_array[50:,:50]
+    X_22 = ipw_array[50:,50:]
+    Y_22 = refl_array[50:,50:]
+    
+    return [X_11,X_12,X_21,X_22],[Y_11,Y_12,Y_21,Y_22]
+    
+
+def load_data_slices(phase = 1,images_fields = 'fields',storm_dates = storm_dates_train):
+    
+    base_path = '../data/dataset/20'
+    # We are going to visually look at each day to determine our storm 
+    # dates. The storm dates are determined such that there is not 
+    # too much noise and there is an evident storm. 
+    data_builder = BuildDataSet.dataset(num_points = 500)
     
     doy_strings = data_builder.club_days(storm_dates)
     days_in_sorted = doy_strings.keys()
     days_in_sorted.sort()
     
     if images_fields == 'fields':
-        ipw_files,refl_files = data_builder.sort_IPW_refl_files(14)
+        ipw_files,refl_files = data_builder.sort_IPW_refl_files(storm_dates[0][1])
     else:
-        ipw_files,refl_files = data_builder.sort_IPW_refl_files_imgs(14)
+        ipw_files,refl_files = data_builder.sort_IPW_refl_files_imgs(storm_dates[0][1])
     
     X = []
     Y = []
     for set_ in days_in_sorted:
         temp_ipw_files = filter(lambda x: re.findall('\d+',x)[1] in doy_strings[set_],ipw_files)
         temp_refl_files = filter(lambda x: re.findall('\d+',x)[1] in doy_strings[set_],refl_files)
-        temp_ipw_files = map(lambda x: base_path + str(14) + os.sep + x,temp_ipw_files)
-        temp_refl_files = map(lambda x: base_path + str(14) + os.sep + x,temp_refl_files)
+        temp_ipw_files = map(lambda x: base_path + str(storm_dates[0][1]) + os.sep + x,temp_ipw_files)
+        temp_refl_files = map(lambda x: base_path + str(storm_dates[0][1]) + os.sep + x,temp_refl_files)
         
         if phase > 0:
             # Drop n files from the beggining of the ipw file list
@@ -176,12 +189,12 @@ def load_data(phase = 0,images_fields = 'fields'):
 
 def compute_covariance(X,Y):
     m = X.shape[1]
-    X_bar = X - np.mean(X,axis = 1).reshape(-1,1)
-    Y_bar = Y - np.mean(Y,axis=1).reshape(-1,1)
+    X_bar = X - np.mean(X,axis = 0)
+    Y_bar = Y - np.mean(Y,axis=0)
     
-    S_11 = (1./(m-1.)) * np.dot(X_bar,X_bar.T)
-    S_22 = (1./(m-1.)) * np.dot(Y_bar,Y_bar.T)
-    S_12 = (1./(m-1.)) * np.dot(X_bar,Y_bar.T)
+    S_11 = (1./(m-1.)) * np.dot(X_bar.T,X_bar)
+    S_22 = (1./(m-1.)) * np.dot(Y_bar.T,Y_bar)
+    S_12 = (1./(m-1.)) * np.dot(X_bar.T,Y_bar)
     
     return S_11,S_12,S_22
     
@@ -229,13 +242,11 @@ def plot_fields(T,X,Y):
         fname = '../data/test_fields/Plot_'+ T[i][1] + '_'+ T[i][2] + '.png'
         plt.figure()
         plt.subplot(121)
-#        plt.imsave(fname,X[i].reshape(shape),origin = 'lower', cmap = 'gray')
+
         plt.imshow(X[i].reshape(shape),origin = 'lower', cmap = 'gray')
         plt.subplot(122)
         plt.imshow(Y[i].reshape(shape),origin = 'lower', cmap = 'gray')
-#        plt.imsave(fname,Y[i].reshape(shape),origin = 'lower', cmap = 'gray')
         plt.savefig(fname)
-#        plt.imsave()
 
 def plot_field_slices(X_,Y_):
     X_ = X_.T
@@ -311,7 +322,7 @@ def reduce_dimensions(X_slices,Y_slices,p_components,q_components,plot=False):
 #    plt.ylim(0.0,1.1)
         plt.show()
     Y_new = mdl2.transform(Y_slices)
-    return X_new,Y_new
+    return X_new,Y_new,mdl1,mdl2
 
 
 def permute_dataSet(X,Y):
@@ -325,13 +336,9 @@ def permute_dataSet(X,Y):
     
     
     
-def main(phase,ipw_components,refl_components,probe_fields = False):
-    # First pick a few storm cases to apply the CCA algorithm to
-    # make sure to pick enough points for testing also
-    
-#    phase = 0
+def train_CCA(phase,ipw_components,refl_components,probe_fields = False):
         
-    X_slices,Y_slices = load_data_slices(int(phase),images_fields = 'images')
+    X_slices,Y_slices = load_data_slices(int(phase),images_fields = 'images',storm_dates = storm_dates_train)
     X_slices,Y_slices = permute_dataSet(X_slices,Y_slices)
     #----------------------------------------------------#
 #    Use the following data to test the implementation 
@@ -350,51 +357,49 @@ def main(phase,ipw_components,refl_components,probe_fields = False):
 #    scipy.io.savemat('test_1.mat', dict(x=X, y=Y))
     #----------------------------------------------------#
     
-    X,Y = reduce_dimensions(X_slices,Y_slices,ipw_components,refl_components)
-    scipy.io.savemat('test_wilks.mat', dict(x=X, y=Y))
-    
-    print 'After PCA'
-    
-    print X.shape,Y.shape
-     
+    X,Y,pca_mdl1,pca_mdl2 = reduce_dimensions(X_slices,Y_slices,ipw_components,refl_components)
+    scipy.io.savemat('test_wilks.mat', dict(x=X, y=Y))     
     mdl2 = PCA_CCA.CCA(n_components = 8)
     
     mdl2.fit(X,Y)
+    print '-'*50
+    print 'Covariance of training set'
+    print mdl2.S
+    print np.dot(np.dot(mdl2.A,mdl2.S_12),mdl2.B)
     
-#    print np.sum(mdl2.S)
-#    
-#    print mdl2.S[:5]
-#    
-#    print mdl2.wilks_statistics()
-    
-    return mdl2    
+    return mdl2,pca_mdl1,pca_mdl2
 
-def plot_metrics(mdl_array):
-#    f1 = file('PCA_CCA_results.pkl','rb')
-#    mdl_arrays = pkl.load(f1)
-#    f1.close()
+def test_CCA(phase,cca_mdl,pca_mdl1,pca_mdl2):
+    X_slices,Y_slices = load_data_slices(int(phase),images_fields = 'images',storm_dates = storm_dates_test)
     
+    print X_slices.shape,Y_slices.shape
+    
+    X_new = pca_mdl1.transform(X_slices)
+    Y_new = pca_mdl2.transform(Y_slices)
+    
+    S_11_test,S_12_test,S_22_test = compute_covariance(X_new,Y_new)
+    
+    print cca_mdl.A.shape, S_12_test.shape, cca_mdl.B.shape
+    
+    print np.dot(np.dot(cca_mdl.A,S_12_test),cca_mdl.B)
+    
+
+    
+    
+def plot_metrics(mdl_array):
     component_sum = []
     for mdl in mdl_array:
         component_sum.append(np.sum(mdl.S))
     print component_sum
     
-        
-    
-    
-if __name__ == '__main__':
-#    mdl = main(1,100,100)
+
+def experiment_1():
     phase = 0
     ipw_components = 2
-    refl_components = 2
-    
-    
+    refl_components = 2    
     phase_list = [0,1,2,3,4,5,6,7]
-#     results 1
     ipw_components = [8]
     refl_components = [20,40,60,80,100,120,140,160,180,200]
-#    ipw_components = [80,100,120]
-#    refl_components = [100,120,140]
     ipw_refl_component_models = []
     for ipw_c in ipw_components:
         for refl_c in refl_components:
@@ -402,13 +407,23 @@ if __name__ == '__main__':
             mdl_array = []
             for phase in phase_list:
                 print 'Running phase %d '%phase
-                mdl = main(phase,ipw_c,refl_c)
+                mdl = train_CCA(phase,ipw_c,refl_c)
                 mdl_array.append(mdl)
             plot_metrics(mdl_array)
             ipw_refl_component_models.append(mdl_array)
     f1 = file('PCA_CCA_results_3.pkl','wb')
     pkl.dump(ipw_refl_component_models,f1)
     f1.close()
+        
+def experiment_2():
+    phase = 0
+    cca_mdl,pca_mdl1,pca_mdl2 = train_CCA(phase,8,80)
+    test_CCA(phase,cca_mdl,pca_mdl1,pca_mdl2)
+    
+
+    
+if __name__ == '__main__':
+    experiment_2()
     
             
         

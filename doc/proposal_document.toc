@@ -16,17 +16,23 @@
 \contentsline {section}{\numberline {2.3}Measuring Rainfall}{20}
 \contentsline {Chapter}{\numberline {3.}\MakeTextUppercase {Data Set}}{24}
 \contentsline {section}{\numberline {3.1}Experimental Data Set}{27}
-\contentsline {section}{\numberline {3.2}Preliminary Data Analysis}{27}
-\contentsline {Chapter}{\numberline {4.}\MakeTextUppercase {Initial Learning Results}}{32}
-\contentsline {section}{\numberline {4.1}Problem Setup}{32}
-\contentsline {section}{\numberline {4.2}Training and Validation}{34}
-\contentsline {section}{\numberline {4.3}The Naive Bayes Classifier }{34}
-\contentsline {section}{\numberline {4.4}Random Forest Classifier}{35}
-\contentsline {section}{\numberline {4.5}Nowcasting Performance Results}{37}
-\contentsline {Chapter}{\numberline {5.}\MakeTextUppercase {Discussion, Proposed Work, Thesis Timeline}}{42}
-\contentsline {section}{\numberline {5.1}Proposed Work}{42}
-\contentsline {section}{\numberline {5.2}Expected Contributions}{43}
-\contentsline {section}{\numberline {5.3}Timeline}{45}
+\contentsline {section}{\numberline {3.2}Preliminary Data Analysis}{28}
+\contentsline {section}{\numberline {3.3}Preprocessing}{29}
+\contentsline {section}{\numberline {3.4}Atmospheric Rivers}{29}
+\contentsline {Chapter}{\numberline {4.}\MakeTextUppercase {Theory of the Machine Learning algorithms used in this Thesis}}{34}
+\contentsline {section}{\numberline {4.1}Introduction}{35}
+\contentsline {section}{\numberline {4.2}Random Forest}{35}
+\contentsline {subsection}{\numberline {4.2.1}Classification and Regression Trees}{36}
+\contentsline {section}{\numberline {4.3}Convolutional Neural Network}{38}
+\contentsline {Chapter}{\numberline {5.}\MakeTextUppercase {Problem Formulation}}{39}
+\contentsline {section}{\numberline {5.1}Problem Setup}{39}
+\contentsline {section}{\numberline {5.2}Training and Validation}{40}
+\contentsline {section}{\numberline {5.3}The Naive Bayes Classifier }{41}
+\contentsline {section}{\numberline {5.4}Nowcasting Performance Results}{42}
+\contentsline {Chapter}{\numberline {6.}\MakeTextUppercase {Discussion, Proposed Work, Thesis Timeline}}{47}
+\contentsline {section}{\numberline {6.1}Proposed Work}{47}
+\contentsline {section}{\numberline {6.2}Expected Contributions}{48}
+\contentsline {section}{\numberline {6.3}Timeline}{50}
 \setcounter {tocdepth}{0}
-\contentsline {OnlyAppendix}{\MakeTextUppercase {DFW PRECIPITABLE WATER VAPOR, REFLECTIVITY NETWORK}}{46}
-\contentsline {BackMatter}{\MakeTextUppercase {Bibliography}}{48}
+\contentsline {OnlyAppendix}{\MakeTextUppercase {DFW PRECIPITABLE WATER VAPOR, REFLECTIVITY NETWORK}}{51}
+\contentsline {BackMatter}{\MakeTextUppercase {Bibliography}}{53}

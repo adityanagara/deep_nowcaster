@@ -15,10 +15,11 @@ class CommonData:
         #KFWS Dallas
         self.KFWSlat = 32.57278
         self.KFWSlong = -97.30278
-        self.sites = np.loadtxt('/Users/adityanagarajan/Summer_2015/ConvectiveInitiation/data/KFWS_GPS_ASOS_locations.csv',dtype='S',delimiter = ',',skiprows = 1)
+        self.sites = np.loadtxt('/Users/adityanagarajan/projects/nowcaster/data/KFWS_GPS_ASOS_locations_new.csv',dtype='S',delimiter = ',',skiprows = 1)
         self.base_path = '/home/aditya/UMASS/DFWnet/'
-        self.IPWvals_2014 = np.load('/Users/adityanagarajan/projects/nowcaster/data/2014IPW_data.npy')
-        self.IPWvals_2015 = np.load('/Users/adityanagarajan/projects/nowcaster/data/2015IPW_data.npy')
+        self.IPWvals_2014 = np.load('../data/2014IPW_data.npy')
+        self.IPWvals_2015 = np.load('../data/2015IPW_data.npy')
+        self.IPWvals_2016 = np.load('../data/2016IPW_data.npy')
         self.Prvals = np.load('/Users/adityanagarajan/Summer_2015/ConvectiveInitiation/data/2014PressureData_update1.npy')
         self.cnvl_ip = '129.107.93.30'
     def doytodate(self,yr,doy):
@@ -54,6 +55,37 @@ class CommonData:
             alpha_dict[i] = alpha_list[i]
             numa_dict[i] = str(i).zfill(2)
         return alpha_dict, numa_dict
+    
+    def distance_on_unit_sphere(self,lat1, long1, lat2, long2):
+        '''Returns distance between two points in km.
+        inpot lat1, long1, lat2, long2 in decimal degrees'''
+        # Convert latitude and longitude to 
+        # spherical coordinates in radians.
+        degrees_to_radians = math.pi/180.0
+
+        # phi = 90 - latitude
+        phi1 = (90.0 - lat1)*degrees_to_radians
+        phi2 = (90.0 - lat2)*degrees_to_radians
+
+        # theta = longitude
+        theta1 = long1*degrees_to_radians
+        theta2 = long2*degrees_to_radians
+
+        # Compute spherical distance from spherical coordinates.
+
+        # For two locations in spherical coordinates 
+        # (1, theta, phi) and (1, theta, phi)
+        # cosine( arc length ) = 
+        #    sin phi sin phi' cos(theta-theta') + cos phi cos phi'
+        # distance = rho * arc length
+
+        cos = (math.sin(phi1)*math.sin(phi2)*math.cos(theta1 - theta2) + 
+           math.cos(phi1)*math.cos(phi2))
+        arc = math.acos( cos )
+
+        # Remember to multiply arc by the radius of the earth 
+        # in your favorite set of units to get length.
+        return arc * 6373.0
     
 
 

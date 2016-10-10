@@ -18,9 +18,12 @@ def save_to_numpy(yr):
     mon_day_dict = {}
     # /var/www/html/gpsmet/DFWnet/2015/IPW/
     file_path = '/var/www/html/gpsmet/DFWnet/20' + str(yr) + '/IPW/'
-
-    for x in range(1,366):
-        DFW.doytodate(15,x)
+    if yr % 4 == 0:
+        end_date = 367
+    else:
+        end_date = 366
+    for x in range(1,end_date):
+        DFW.doytodate(yr,x)
         if DFW.mon not in mon_day_dict.keys():
             mon_day_dict[DFW.mon] = []
         mon_day_dict[DFW.mon].append(DFW.day)
@@ -35,12 +38,12 @@ def save_to_numpy(yr):
             for s in range(len(sites)):
                 temp = file_path + get_files[g]
                 data = np.loadtxt(temp,delimiter=',',dtype='S',skiprows=1)
-                data[data =='-999.99'] = np.nan
+                data[data =='-9.9'] = np.nan
                 IPWval[g,s,:] = data[data[:,0] == sites[s]]
-    np.save('2015IPW_data.npy',IPWval)
+    np.save('20' + str(yr) + 'IPW_data.npy',IPWval)
     
 if __name__ == '__main__':
-    yr = 15
+    yr = 16
     save_to_numpy(yr)
 
 #

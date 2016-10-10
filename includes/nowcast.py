@@ -31,8 +31,6 @@ class BuildNowcaster():
 
         # Filter top left of the domain
         domain_list = filter(lambda x: int(re.findall('\d+',x)[0]) in np.unique(PixelPoints[:,0]) and int(re.findall('\d+',x)[1]) in np.unique(PixelPoints[:,1]),file_list)
-        
-
         domain_list.sort(key = lambda x: int(x[-7:-4]))
 
         ipw_files = filter(lambda x: x[:3] == 'IPW',domain_list)

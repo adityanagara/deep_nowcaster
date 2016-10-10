@@ -91,16 +91,16 @@ class CCA(object):
         
 #        print np.dot(X_bar[0,:].reshape(1,-1),coeff_) + np.mean(Y,axis=0).reshape(1,-1)
     
-    def wilks_statistics(self):
-        logLambda = np.zeros(self.S.size)
-        for s in range(self.S.size):
-            logLambda[s] = np.sum(np.log(1 - np.power(self.S[s:],2)))
-        k = np.arange(self.S.size)
+    def wilks_statistics(self,S):
+        logLambda = np.zeros(S.size)
+        for s in range(S.size):
+            logLambda[s] = np.sum(np.log(1 - np.power(S[s:],2)))
+        k = np.arange(S.size)
         dp = self.p - k
         dq = self.q - k
         dstats = dp * dq
         delta = self.N - 1  - 0.5 * (self.p + self.q + 1)
-        nue = np.cumsum(np.concatenate(([0],1./ np.power(self.S[:-1],2)))) - k
+        nue = np.cumsum(np.concatenate(([0],1./ np.power(S[:-1],2)))) - k
         L_k = - (delta + nue) * logLambda
         return chi2.cdf(L_k, dstats)
 
