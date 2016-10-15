@@ -33,7 +33,7 @@ python reflectivity_ipw_movies.py
 example plots of the precipitation fields overlapped over the NIPW fields. The video sequence of the evolving
 precipitation fields and NIPW fields can be found in this [youtube video](https://www.youtube.com/watch?v=r_LATx7BdUQ). 
 
-![example plot](https://raw.github.com/adityanagara/deep_nowcaster/master/vis/teaser.jpeg)
+![example plot](https://github.com/adityanagara/deep_nowcaster/blob/master/Preprocessing_code/Plot_43.png)
 
 We explore machine learning techniques which can capture the spatiotemporal relationships between the evolving precipitation fields
 and NIPW fields to be able to nowcast precipitation.
