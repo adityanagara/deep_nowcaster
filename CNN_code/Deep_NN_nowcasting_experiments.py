@@ -973,7 +973,7 @@ def conv_net(tr_block,val_block,num_epochs,exp_no,load_model_weights = False,mod
             pkl.dump(performance_metrics,f1,protocol = pkl.HIGHEST_PROTOCOL)
             f1.close()
 
-def main(data_builder,make_data_set = False):
+def main(data_builder,make_data_set = True):
     
     training_blocks,validation_blocks = build_training_validation_sets(data_builder)
     
