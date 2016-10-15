@@ -356,7 +356,7 @@ def plot_radarIPW(t,doy,IPWvals,W,no_data,yr,gpsX,gpsY,IPWsites,processes_from_n
     np.save('../data/dataset/20' + str(yr) + '/IPWdata' +str(yr) +'_' + str(int(doy)) + '_' + str(t) + '.npy',gridIPW)
     cbar = plt.colorbar()
     cbar.set_label('Normalized IPW values', size = 16)
-    plt.pcolor(gridX,gridY,gridZ,cmap='jet', vmin=10, vmax=60)
+    img = plt.pcolor(gridX,gridY,gridZ,cmap='jet', vmin=10, vmax=60)
     cbar = plt.colorbar()
     cbar.set_label('Reflectivity (dBz)',size = 16)
     plt.grid()
@@ -364,12 +364,13 @@ def plot_radarIPW(t,doy,IPWvals,W,no_data,yr,gpsX,gpsY,IPWsites,processes_from_n
     plt.ylim((-150.0,150.0))
     plt.xlabel('Easting (km)',size = 18)
     plt.ylabel('Northing (km)', size = 18)
-    plt.title('Reflectivity NIPW fields for: ' + DFW.mon + '/' + DFW.day + ' Time: ' + time_index[t] + ' (UTC)', size = 14)
+    plt.title('Reflectivity NIPW fields for: ' + DFW.mon + '/' + DFW.day + ' Time: ' + time_index[t] + ' (UTC)', size = 18)
     
     if not os.path.exists('../output/reflectivity_ipw_fields/20' + str(yr)+ os.sep + Months[int(DFW.mon) -1] + str(DFW.day) + os.sep):
         os.mkdir('../output/reflectivity_ipw_fields/20' + str(yr)+ os.sep + Months[int(DFW.mon) -1] + str(DFW.day) + os.sep)
-    plt.savefig('../output/reflectivity_ipw_fields/20' + str(yr) + os.sep + Months[int(DFW.mon) -1] + str(DFW.day) + os.sep +'Plot_'  + str(t) + '.png')
+#    plt.savefig('../output/reflectivity_ipw_fields/20' + str(yr) + os.sep + Months[int(DFW.mon) -1] + str(DFW.day) + os.sep +'Plot_'  + str(t) + '.png')
 #    img = plt.show()
+    return img
     
 
 def nan_helper(y):
@@ -656,8 +657,8 @@ def main(yr,storm_dates,make_summary_stats = True,normalize = 'monthly'):
 #        drop_stations(yr,d[0],IPWvals,missing_value_dict[d[0] - 1])
         print d,missing_value_dict[d[0] - 1]
         IPWvals_day = IPWvals[int(d[0]) - 1,:,1:].astype('float')
-#        imgs = []
-#        fig = plt.figure()
+        imgs = []
+        fig = plt.figure()
         gpsX,gpsY,IPWsites,IPWvals_day = get_GPS_cartesian(missing_value_dict[int(d[0]) -1],IPWvals_day,DFW_network.sites)
         if normalize == 'monthly':
             IPWvals_day = NormalizeIPW_Normal(SummaryStats,IPWvals_day,int(d[0]),missing_value_dict,IPWsites,yr)
@@ -669,8 +670,10 @@ def main(yr,storm_dates,make_summary_stats = True,normalize = 'monthly'):
         else:
             print 'Making Multiquadratic weights'
             W = get_Mulit_Quadratic_Weights(gpsX,gpsY,IPWsites,int(d[0]),yr)
-        for t in range(48):
-            plot_radarIPW(t,d[0],IPWvals_day,W,missing_value_dict[int(d[0]) -1],yr,gpsX,gpsY,IPWsites)
+        for t in range(5):
+            img = plot_radarIPW(t,d[0],IPWvals_day,W,missing_value_dict[int(d[0]) -1],yr,gpsX,gpsY,IPWsites)
+            imgs.append([img])
+        make_gif(fig,imgs)
         
         
     
@@ -678,7 +681,7 @@ if __name__ == '__main__':
 #    np.seterr(invalid='raise')
     # July 24 2014, NEXRAD data not available for full day so we are going to kill 
     # this site
-    for yr in [14,15,16]:
+    for yr in [14]:
         print '-'*40
         if yr == 14:
             storm_dates = np.load('../data/storm_dates_2014.npy').astype('int')
