@@ -976,7 +976,6 @@ def conv_net(tr_block,val_block,num_epochs,exp_no,load_model_weights = False,mod
 def main(data_builder,make_data_set = True):
     
     training_blocks,validation_blocks = build_training_validation_sets(data_builder)
-    
     if make_data_set:
         make_dataset_NN_2(data_builder)
     for i in range(4):
