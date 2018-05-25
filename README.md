@@ -2,8 +2,7 @@
 
 ## Introduction
 
-This repository contains all code required to reproduce results from my Masters Thesis "Towards Learning Spatiotemporal Relationships 
-from Multiple Weather Variables using Machine Learning Techniques for Precipitation Nowcasting" (link to document available soon). As
+This repository contains all code required to reproduce results from my Masters Thesis Exploration into [machine learning techniques for precipitation nowcasting](https://scholarworks.umass.edu/cgi/viewcontent.cgi?article=1501&context=masters_theses_2). As
 a byproduct this repo also contains APIs to access GPS RINEX files from FTP database, and ASOS data from NCDC. We also open source
 the script to map weather variables to GPS stations. 
 
